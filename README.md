@@ -166,4 +166,4 @@ The code is released under the [MIT License](LICENSE). The dataset is © its aut
 
 ## Contact
 
-Md Abu Sufian, Department of Computer Science, University of East London ([databizanalyst.com](https://databizanalyst.com))
+Md Abu Sufian, Department of Computer Science, University of East London, Lab ([[databizanalyst.com](https://databizanalyst.com/CardioAi_Lab.html)]([https://databizanalyst.com](https://databizanalyst.com/CardioAi_Lab.html)))
