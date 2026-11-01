@@ -8,6 +8,12 @@ The repository covers the full analysis behind the paper: outcome-independent co
 
 ---
 
+## At a glance
+
+![Study overview](docs/figures/Government-ai-policy_overview.png)
+
+**Figure 1. Study overview.** (a) Outcome-independent cohort of 264,344 36-month LendingClub loans with chronological train, validation and test splits. (b) Temporal-leakage audit: fields aligned to the last-payment date were rebuilt from the issue date; leaky AUCs are shown only as a diagnostic. (c) Chronological comparison of SGD logistic regression, HistGradientBoosting and an MLP under a pre-specified selection rule. (d) Governance evaluation from the paper's tables: discrimination, calibration by credit grade, threshold governance and the stress regime.
+
 ## Overview
 
 AI credit models are often governed through aggregate accuracy or discrimination metrics. Their operational consequences, though, also depend on how the outcome is defined, how well the probabilities are calibrated, which decision threshold is used, how the data are aligned in time, and how the portfolio is composed. This study revisits those issues on **version 3 of a public archive of 2,703,430 US peer-to-peer (LendingClub) loans** with macroeconomic variables.
