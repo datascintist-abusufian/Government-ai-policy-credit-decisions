@@ -80,7 +80,6 @@ The notebook is meant to be run **top to bottom**, because later cells reuse in-
 [`docs/notebook_map.md`](docs/notebook_map.md) maps each step to the section or table it supports.
 
 ## Getting started
-
 ### 1. Environment
 
 The analysis was run with Python 3.14 and scikit-learn 1.8.
