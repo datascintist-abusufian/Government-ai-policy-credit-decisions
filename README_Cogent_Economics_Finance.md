@@ -357,3 +357,10 @@ The Mendeley source dataset is distributed by its original depositor under **CC 
 ## Contact
 
 For manuscript-specific questions or evidence-file provenance, contact **Md Abu Sufian** at [m.sufian@uel.ac.uk](mailto:m.sufian@uel.ac.uk).
+
+
+## Download and place the source data
+
+1. Download version 3 from the [original Mendeley Data record](https://doi.org/10.17632/wb3ndt69gf.3). Obtain `wb3ndt69gf-3.zip` from that record. The Cogent folder uses the original data source for distribution.
+2. Extract the archive locally. Keep the source filename `P2P_Macro_Data.dta` and retain the accompanying Stata scripts for reference.
+3. Before running either Cogent notebook, check its data-loading cell and point the input path to your local copy of `P2P_Macro_Data.dta`. Replace any machine-specific paths with paths on your computer. The source archive and the extracted Stata dataset are both stored outside Git.
