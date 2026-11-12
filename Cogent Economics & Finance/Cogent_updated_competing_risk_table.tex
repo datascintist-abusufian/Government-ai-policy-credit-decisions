@@ -1,0 +1,46 @@
+% Replace the existing \begin{table}...\label{tab:competing_risk}...\end{table}
+% with the block below. Preserve the existing label exactly.
+% Aalen-Johansen CIF and risk counts independently reproduced using
+% Cogent_independent_competing_risk_CIF_audit.py on the saved Cell 17 CSV.
+% Bootstrap CIs copied from the current manuscript; NOT independently reproduced.
+
+\begin{table}[!htbp]
+\centering
+\caption{Competing-risk cumulative incidence and follow-up support.
+Observed charge-off is the event of interest, full repayment is a
+competing event, and unresolved loans are right-censored.}
+\label{tab:competing_risk}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{rrrrl}
+\toprule
+Horizon (months) & At risk ($n$) & Charge-off CIF & Fully-paid CIF & Charge-off 95\% bootstrap CI \\
+\midrule
+6  & 2,081,403 & 0.0161 & 0.0650 & Not reported \\
+12 & 1,092,889 & 0.0413 & 0.1438 & [0.0410, 0.0416] \\
+18 & 637,032   & 0.0750 & 0.2370 & Not reported \\
+24 & 522,416   & 0.1061 & 0.3329 & [0.1057, 0.1067] \\
+36 & 221,142   & 0.1419 & 0.6748 & [0.1413, 0.1426] \\
+\bottomrule
+\end{tabular}%
+}
+\vspace{3pt}
+\begin{minipage}{\textwidth}
+\footnotesize
+\textit{Notes:} Competing-risk cohort $n=2{,}700{,}690$;
+175,144 charge-offs, 765,339 full repayments, and 1,760,207
+right-censored loans. A further 2,740 records were excluded because
+usable event timing was unavailable. ``At risk'' is the number with
+recorded event or censoring duration at least equal to the stated
+month, immediately before events/censorings in that month. The saved
+dataset contains 12,304 same-month terminal events; the displayed
+cumulative-incidence values are reproducible with those events assigned
+to month one. Bootstrap intervals shown at 12, 24 and 36 months are
+the previously reported loan-level intervals; none are asserted for
+other horizons. In the archived data, terminal-event end dates equal
+\texttt{last\_dt}, while censoring end dates equal
+\texttt{next\_dt} minus one calendar month. These dates are
+payment-based proxies, not independently verified historical timestamps.
+These incidence estimates do not validate fitted classifier predictions
+under censoring.
+\end{minipage}
+\end{table}
