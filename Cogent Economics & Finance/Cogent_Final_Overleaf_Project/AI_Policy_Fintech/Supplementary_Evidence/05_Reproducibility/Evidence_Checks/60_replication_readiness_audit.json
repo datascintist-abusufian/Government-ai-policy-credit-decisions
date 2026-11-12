@@ -1,0 +1,42 @@
+{
+  "purpose": "Replication readiness preflight",
+  "clean_replay_executed": false,
+  "archive": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Evidence_Checks\\44_Cogent_replication_candidate_NOT_VERIFIED.zip",
+  "archive_summary": {
+    "exists": true,
+    "integrity": "PASS",
+    "file_count": 197,
+    "python_file_count": 16,
+    "stata_file_count": 2,
+    "data_file_count": 0,
+    "python_compile_failures": [],
+    "unsafe_archive_names": []
+  },
+  "local_missing_files": [],
+  "prediction_array_checks": {
+    "cell27_y_val.npy": {
+      "status": "PASS",
+      "shape": [
+        27374
+      ],
+      "expected_rows": 27374
+    },
+    "cell27_y_test.npy": {
+      "status": "PASS",
+      "shape": [
+        41145
+      ],
+      "expected_rows": 41145
+    }
+  },
+  "software_environment": {
+    "python": "3.14.7",
+    "numpy": "2.5.2",
+    "pandas": "2.3.3",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.0",
+    "statsmodels": "0.15.0",
+    "matplotlib": "3.11.1"
+  },
+  "interpretation": "ZIP integrity, source compilation and file presence do not establish that the original experiments can be independently reproduced."
+}

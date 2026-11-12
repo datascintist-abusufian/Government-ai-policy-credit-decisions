@@ -1,0 +1,30 @@
+﻿ROUND 2: REVIEWER 2 COMMENT 1
+Outcome maturity and selection bias
+
+Source: Existing Round 1 saved outputs
+Administrative cutoff: April 2020
+
+Validation maximum follow-up: 21 months
+Test maximum follow-up: 12 months
+Minimum contractual term: 36 months
+
+Both evaluation cohorts have insufficient
+contractual follow-up under this cutoff.
+
+The analysis checks whether the retained
+mature counts equal the terminal-status counts.
+
+IMPORTANT:
+These are preliminary audit findings.
+Terminal event dates relative to April 2020
+have not yet been independently verified.
+
+
+Cohort     TotalLoans MatureLoans TerminalStatusLoans MaximumFollowupMonths ContractualCompletionPossible TerminalShare
+                                                                                                               OfMature
+------     ---------- ----------- ------------------- --------------------- ----------------------------- -------------
+Validation     370994       27374               27374                    21                         False           100
+Test           401169       41145               41145                    12                         False           100
+
+
+

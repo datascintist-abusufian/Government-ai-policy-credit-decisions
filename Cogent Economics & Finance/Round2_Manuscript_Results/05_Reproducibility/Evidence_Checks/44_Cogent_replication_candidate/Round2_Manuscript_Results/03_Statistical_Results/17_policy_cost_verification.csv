@@ -1,0 +1,7 @@
+cohort,fn_fp_ratio,confusion_matrix_valid,model_cost_valid,no_review_cost_valid,net_benefit_valid
+Validation,5:1,True,True,True,True
+Test,5:1,True,True,True,True
+Validation,10:1,True,True,True,True
+Test,10:1,True,True,True,True
+Validation,20:1,True,True,True,True
+Test,20:1,True,True,True,True

@@ -1,0 +1,81 @@
+ROUND 2 | REVIEWER 2 COMMENT 3 | SEED-STABILITY SENSITIVITY
+Python: 3.14.7 | NumPy: 2.5.2 | pandas: 2.3.3 | sklearn: 1.9.0
+Dataset: E:\Governance-Policy\Cogent Economics & Finance\P2P_Macro_Data.dta
+Original predictions are read-only. No new data is written to revision_outputs.
+Feature specification: 150 inputs; 136 numeric; 14 categorical
+Reconstructing mature cohorts from original Stata file in original row order...
+  Scanned 200,000 source records
+  Scanned 400,000 source records
+  Scanned 600,000 source records
+  Scanned 800,000 source records
+  Scanned 1,000,000 source records
+  Scanned 1,200,000 source records
+  Scanned 1,400,000 source records
+  Scanned 1,600,000 source records
+  Scanned 1,800,000 source records
+  Scanned 2,000,000 source records
+  Scanned 2,200,000 source records
+  Scanned 2,400,000 source records
+  Scanned 2,600,000 source records
+  Scanned 2,703,430 source records
+train n= 1304058 adverse rate= 0.138936
+val n= 27374 adverse rate= 0.101227
+test n= 41145 adverse rate= 0.146433
+PASS: Fixed validation/test labels match original prediction-array order.
+Fitting original full-training preprocessor once (comparison with original, NOT independent sample-specific preprocessing)...
+Feature matrix width: 384 | fixed val/test dimensions: (27374, 384) (41145, 384)
+Transforming mature full training matrix once; the same transformer is used for all seeds...
+Full training matrix shape: (1304058, 384)
+
+Phase 1: validate old seed-42 180k training before new sensitivity fits
+
+Training n= 180,000 seed= 42 sample positive rate= 0.137606
+Logistic_SGD val_auc= 0.610769 test_auc= 0.646062 test_brier= 0.157529 fit_eval_seconds= 13.8
+   benchmark comparison: |AUC difference|= 0.000000 |Brier difference|= 0.000000
+HistGB val_auc= 0.730790 test_auc= 0.697660 test_brier= 0.134361 fit_eval_seconds= 17.6
+   benchmark comparison: |AUC difference|= 0.000000 |Brier difference|= 0.000000
+MLP val_auc= 0.705201 test_auc= 0.718945 test_brier= 0.116114 fit_eval_seconds= 7.6
+   benchmark comparison: |AUC difference|= 0.000000 |Brier difference|= 0.000000
+PASS: Original seed-42 180k experiment reproduced within declared tolerances
+
+Phase 2: two additional sampling/model random seeds (7 and 101) for 180k and full training
+
+Training n= 180,000 seed= 7 sample positive rate= 0.139339
+Logistic_SGD val_auc= 0.657463 test_auc= 0.627190 test_brier= 0.133045 fit_eval_seconds= 13.6
+HistGB val_auc= 0.693931 test_auc= 0.677096 test_brier= 0.136120 fit_eval_seconds= 16.6
+MLP val_auc= 0.689977 test_auc= 0.714002 test_brier= 0.119731 fit_eval_seconds= 9.1
+
+Training n= 1,304,058 seed= 7 sample positive rate= 0.138936
+Logistic_SGD val_auc= 0.660363 test_auc= 0.695398 test_brier= 0.125145 fit_eval_seconds= 76.9
+HistGB val_auc= 0.708263 test_auc= 0.688469 test_brier= 0.136548 fit_eval_seconds= 113.4
+MLP val_auc= 0.715780 test_auc= 0.614707 test_brier= 0.135705 fit_eval_seconds= 70.2
+
+Training n= 180,000 seed= 101 sample positive rate= 0.139322
+Logistic_SGD val_auc= 0.660543 test_auc= 0.647351 test_brier= 0.151646 fit_eval_seconds= 8.8
+HistGB val_auc= 0.701047 test_auc= 0.685086 test_brier= 0.133227 fit_eval_seconds= 14.6
+MLP val_auc= 0.732358 test_auc= 0.728127 test_brier= 0.116696 fit_eval_seconds= 6.7
+
+Training n= 1,304,058 seed= 101 sample positive rate= 0.138936
+Logistic_SGD val_auc= 0.667350 test_auc= 0.687407 test_brier= 0.128510 fit_eval_seconds= 85.0
+HistGB val_auc= 0.687915 test_auc= 0.679957 test_brier= 0.137187 fit_eval_seconds= 112.2
+MLP val_auc= 0.731031 test_auc= 0.645038 test_brier= 0.126229 fit_eval_seconds= 81.4
+
+ENDPOINT 180,000
+model   HistGB  Logistic_SGD      MLP
+seed                                 
+7     0.677096      0.627190 0.714002
+42    0.697660      0.646062 0.718945
+101   0.685086      0.647351 0.728127
+Top model per seed: {7: 'MLP', 42: 'MLP', 101: 'MLP'}
+
+ENDPOINT 1,304,058
+model   HistGB  Logistic_SGD      MLP
+seed                                 
+7     0.688469      0.695398 0.614707
+42    0.675016      0.699310 0.646276
+101   0.679957      0.687407 0.645038
+Top model per seed: {7: 'Logistic_SGD', 42: 'Logistic_SGD', 101: 'Logistic_SGD'}
+
+LIMITATIONS: only 3 seeds; sample selection and estimator randomness vary together; original preprocessing fitted on full training data; no hyperparameter re-tuning; outcome selection and predictor-timing concerns remain.
+Saved metrics: E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\22_training_seed_stability.csv
+Saved log: E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\05_Reproducibility\Execution_Logs\22_training_seed_stability_report.txt

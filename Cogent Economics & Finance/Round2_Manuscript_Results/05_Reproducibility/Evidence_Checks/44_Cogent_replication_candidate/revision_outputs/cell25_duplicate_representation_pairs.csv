@@ -1,0 +1,10 @@
+raw_column,encoded_column,raw_present,encoded_present
+application_type,application_type_,True,True
+initial_list_status,initial_list_status_,True,True
+purpose,purpose_,True,True
+verification_status,verification_status_,True,True
+home_ownership,home_ownership_,True,True
+emp_length,emp_length_,True,True
+grade,grade_,True,True
+sub_grade,sub_grade_,True,True
+term,term_,True,True

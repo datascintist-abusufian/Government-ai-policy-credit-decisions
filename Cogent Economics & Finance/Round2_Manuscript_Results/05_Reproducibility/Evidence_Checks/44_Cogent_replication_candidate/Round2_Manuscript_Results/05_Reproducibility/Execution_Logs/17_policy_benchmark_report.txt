@@ -1,0 +1,43 @@
+ROUND 2 - REVIEWER 2 COMMENT 2
+Model-based policy versus trivial baselines
+
+Generated: 2026-11-05 17:40:20.648765
+
+COST FRAMEWORK:
+False-negative cost = ratio-dependent
+False-positive cost = 1 unless otherwise specified
+
+NO-REVIEW PROXY:
+Classify every loan as non-adverse.
+
+REVIEW-ALL PROXY:
+Classify every loan as adverse.
+
+IMPORTANT LIMITATION:
+These are classification-cost benchmarks.
+They do not independently model human review
+staffing costs, review effectiveness or capacity.
+
+POLICY COMPARISON:
+    cohort fn_fp_ratio     n  adverse_n  nonadverse_n  fn_cost  fp_cost  selected_threshold  model_review_n  model_review_rate  model_cost  no_review_cost  review_all_proxy_cost best_trivial_baseline  best_trivial_baseline_cost  model_saving_vs_no_review  model_saving_vs_review_all  model_saving_vs_best_trivial_baseline  model_beats_both_baselines best_policy_among_three  lowest_cost_among_three  cost_per_loan  best_baseline_cost_per_loan
+      Test         5:1 41145       6025         35120      5.0      1.0            0.172966            3187           0.077458     27654.0         30125.0                35120.0             No_review                     30125.0                     2471.0                      7466.0                                 2471.0                        True          Model_selected                  27654.0       0.672111                     0.732167
+      Test        10:1 41145       6025         35120     10.0      1.0            0.096162           15442           0.375307     36829.0         60250.0                35120.0      Review_all_proxy                     35120.0                    23421.0                     -1709.0                                -1709.0                       False        Review_all_proxy                  35120.0       0.895103                     0.853567
+      Test        20:1 41145       6025         35120     20.0      1.0            0.032698           34996           0.850553     35166.0        120500.0                35120.0      Review_all_proxy                     35120.0                    85334.0                       -46.0                                  -46.0                       False        Review_all_proxy                  35120.0       0.854685                     0.853567
+Validation         5:1 27374       2771         24603      5.0      1.0            0.172966            3469           0.126726     12350.0         13855.0                24603.0             No_review                     13855.0                     1505.0                     12253.0                                 1505.0                        True          Model_selected                  12350.0       0.451158                     0.506137
+Validation        10:1 27374       2771         24603     10.0      1.0            0.096162           13018           0.475561     18475.0         27710.0                24603.0      Review_all_proxy                     24603.0                     9235.0                      6128.0                                 6128.0                        True          Model_selected                  18475.0       0.674910                     0.898773
+Validation        20:1 27374       2771         24603     20.0      1.0            0.032698           23717           0.866406     22563.0         55420.0                24603.0      Review_all_proxy                     24603.0                    32857.0                      2040.0                                 2040.0                        True          Model_selected                  22563.0       0.824249                     0.898773
+
+ORIGINAL COST VERIFICATION:
+    cohort fn_fp_ratio  confusion_matrix_valid  model_cost_valid  no_review_cost_valid  net_benefit_valid
+Validation         5:1                    True              True                  True               True
+      Test         5:1                    True              True                  True               True
+Validation        10:1                    True              True                  True               True
+      Test        10:1                    True              True                  True               True
+Validation        20:1                    True              True                  True               True
+      Test        20:1                    True              True                  True               True
+
+SEPARATE TEST TABLE CONSISTENCY:
+ratio  separate_test_table_consistent
+  5:1                            True
+ 10:1                            True
+ 20:1                            True

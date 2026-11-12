@@ -1,0 +1,15 @@
+cohort,loan_status,count,terminal_selected
+test,Charged Off,6021,True
+test,Current,352125,False
+test,Default,4,True
+test,Fully Paid,35120,True
+test,In Grace Period,2050,False
+test,Late (16-30 days),827,False
+test,Late (31-120 days),5022,False
+validation,Charged Off,2768,True
+validation,Current,336925,False
+validation,Default,3,True
+validation,Fully Paid,24603,True
+validation,In Grace Period,1486,False
+validation,Late (16-30 days),1125,False
+validation,Late (31-120 days),4084,False

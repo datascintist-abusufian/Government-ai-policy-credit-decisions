@@ -1,0 +1,1249 @@
+\documentclass[10pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{graphicx}
+\graphicspath{{pics/}{./}}
+\providecommand{\resfig}[2]{\IfFileExists{#2}{\includegraphics[width=#1\textwidth]{#2}}{\IfFileExists{pics/#2}{\includegraphics[width=#1\textwidth]{pics/#2}}{\fbox{\begin{minipage}{\dimexpr#1\textwidth-2\fboxsep-2\fboxrule\relax}\centering\vspace{2.5em}\textit{Figure file not found in this project.}\\[2pt] Upload the analysis figure from the results archive to render it here.\vspace{2.5em}\end{minipage}}}}}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{microtype}
+\usepackage{xurl}
+\usepackage{textcomp}
+\usepackage{cleveref}
+\usepackage{authblk}
+\usepackage{multirow}
+\usepackage{array}
+
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc}
+  
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+  
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.75}
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{5}
+
+\sloppy
+\onehalfspacing
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+
+\title{AI Governance for Credit Decision Systems in P2P Lending}
+
+
+\author[1]{Kumar Utkarsh Singh}
+ \author[2]{Jayasree Varadarajan}
+ \author[3]{Md Abu Sufian}
+ \author[4]{Md Aminul Islam Rana}
+ \author[3]{Nadeem Qazi}
+ \author[5] {Nabeela Berardinelli}
+
+ \affil[1]{PowerX Technologies, London, UK}
+ \affil[2] {School of Geography, Geology and the Environment, University of Leicester, Leicester,  UK}
+ \affil[3]{Department of Computer Science, University of East London, London E16 2RD, UK}
+ \affil[4]{Department of Computer Science, Northumbria University London, UK}
+ \affil[5] {Department of Computer Science and Digital Technologies, School of Architecture, Computing and Engineering, University of East London, London E16 2RD, United Kingdom}
+
+
+\date{}
+
+\begin{document}
+\maketitle
+\begin{center}
+ \textbf{Correspondence:}  \href{mailto:m.sufian@uel.ac.uk}{m.sufian@uel.ac.uk}
+\end{center}
+
+\begin{abstract}
+AI credit models are often governed through aggregate accuracy tests, although their operational consequences also depend on outcome definition, probability calibration, operating thresholds, and portfolio composition. We study these dependencies using 2,703,430 US peer-to-peer loans and a chronological evaluation restricted to outcome-mature observations. Only 41,145 of 401,169 test-period loans (10.3\%) are outcome-mature, with an adverse-outcome rate of 14.64\%, compared with 2.96\% when all recorded test-period statuses are tabulated without requiring adequate follow-up. Model ranking is sensitive to training-sample size: at 180,000 training observations the MLP has the highest test ROC-AUC (0.7189), whereas with the full 1,304,058-loan mature training cohort logistic regression ranks highest (0.6993), followed by HistGB (0.6750) and the MLP (0.6463). Paired bootstrap comparisons confirm statistically distinguishable differences but not a training-size-invariant ordering. The validation-selected full-training HistGB model is subsequently recalibrated using validation data only. On the out-of-time test cohort, recalibration reduces ECE from 0.1188 to 0.0583 and Brier score from 0.1367 to 0.1232 without changing ROC-AUC, although residual underprediction remains (mean prediction 0.0882 versus observed rate 0.1464). Recalibrated validation optimisation selects thresholds of 0.1730, 0.0962, and 0.0327 under 5:1, 10:1, and 20:1 false-negative to false-positive cost scenarios; corresponding test review rates are 7.75\%, 37.53\%, and 85.06\%, with false-negative rates of 84.35\%, 41.36\%, and 4.90\%. The high-state-unemployment subgroup contains only 641 loans and 74 adverse outcomes, and supported grade-by-term comparisons retain wide uncertainty. Additional three-seed and reduced-predictor sensitivity checks show that the original training-size ranking is not invariant to predictor choice, while state-clustered uncertainty for subgroup gaps is fragile because only four jurisdictions contribute high-unemployment cases. The findings support controls for outcome readiness, training-size sensitivity, recalibration, explicit cost and capacity approval, sample-qualified subgroup monitoring, and reproducible model and decision lineage. The study makes neither causal nor unlawful-discrimination claims.
+
+Only loans with a recorded terminal status were retained in the validation and test subsets, so the reported test results do not describe all loan originations. The cost ratios are illustrative, and the subgroup results do not establish demographic fairness or transfer to other lenders.
+\end{abstract}
+
+\noindent\textbf{Keywords:} AI governance; credit scoring; outcome maturity; peer-to-peer lending; model risk; calibration; threshold governance
+
+\section{Introduction}
+
+Credit models do not make lending policy in isolation. A probability becomes consequential only after an institution chooses an operating threshold, determines which cases receive manual review, decides how often calibration is checked, and specifies what happens when borrower or macroeconomic conditions change. This distinction matters because a model can preserve ranking performance while becoming unreliable as a probability estimator or unsafe as a decision rule under distribution shift \cite{ref18,ref26,ref30,ref34}. In high-stakes credit settings, therefore, the central policy question is not simply which model has the highest area under the receiver operating characteristic curve (ROC-AUC), but which control system can keep model use within an explicit risk appetite. FinTech lending intensifies this problem. Automated underwriting may lower transaction costs and expand the information used in credit assessment \cite{ref1,ref13,ref17}, yet machine learning can redistribute errors across borrowers and market conditions rather than eliminate them \cite{ref2,ref7,ref8}. Aggregate accuracy is especially incomplete where default is rare: a threshold can generate a very low flag rate and still produce an apparently strong ROC-AUC, while missing most realised defaults. A policy framework must consequently connect discrimination, calibration, threshold-conditioned errors, subgroup outcomes, and economic-regime sensitivity. Two literatures bear on this problem but rarely meet. The first, in financial economics, examines how algorithmic underwriting reallocates credit across borrowers and how platform lending responds to the regulatory perimeter and to macroeconomic conditions \cite{ref1,ref2,ref13,ref17}. It characterises who gains and who loses from automation, but treats the decision rule that converts a score into an approval as a black box. The second, in machine learning, studies calibration and robustness under dataset shift, and establishes both that modern networks are frequently overconfident and that predictive uncertainty degrades as distributions move \cite{ref29,ref30,ref34}. It supplies the diagnostics but is silent on who inside a supervised institution must act when they deteriorate, and on what evidence a supervisor may demand. A third strand, on prediction-policy problems and on the trade-offs inherent in risk scoring, connects prediction quality to decision value and to the impossibility of satisfying competing fairness criteria simultaneously \cite{ref7,ref8,ref18,ref19}. The contribution here sits between them: it treats the operating threshold, the calibration schedule, and the escalation rule as the objects of policy, and derives their materiality from the same reported outputs an independent validation function would already hold. 
+
+What remains underdeveloped is an empirically grounded governance framework that links data and label readiness, probability calibration, operating thresholds, sample-qualified subgroup diagnostics, and model-development choices to explicit limits, accountable owners, escalation actions, and supervisory evidence. This study makes that connection using a large P2P lending experiment. It evaluates 2,703,430 loans in chronological order, restricts the principal classification analysis to loans with sufficiently observed outcomes, compares linear and nonlinear risk scorers across nested training-sample sizes with paired out-of-time inference, and audits validation-only recalibration, threshold choice, sample-qualified grade-by-term diagnostics, predictor-timing uncertainty, and supplementary clustered uncertainty. The empirical contribution is not a new classifier. It is evidence that outcome readiness, training-sample size, probability calibration, operating-cost assumptions, and subgroup support can materially affect the conclusions drawn from the same credit-modelling system. Three questions organise the analysis:
+
+\begin{enumerate}
+\item Are differences among model families statistically distinguishable and stable to training-sample size once outcomes are mature?
+\item How do calibration, cost assumptions, review capacity, and subgroup sample support affect the credibility of a decision rule?
+\item Which measurable controls should a lender or supervisor require before and after deployment?
+\end{enumerate}
+
+The relevant elements are established in the credit-scoring literature. Statistical scorecards, sample-selection problems, and rejected applicants have long been studied \cite{ref53,ref54,ref55,ref56}. Profit-sensitive threshold selection has also been developed for consumer credit \cite{ref57}, and decision-curve methods show the importance of comparing a risk-based rule with default actions such as acting on everybody or nobody \cite{ref58}. Here we do not claim to invent outcome censoring, recalibration, cost-sensitive classification, or an optimised governance algorithm.
+
+The interpretability argument in \cite{ref7} is used here to motivate governance of complex black-box models, not as empirical evidence of improved credit allocation or a demonstrated effect of any proposed control; the evidence on credit-market allocation comes from credit-specific research such as \cite{ref2,ref17}. The decision-curve reference \cite{ref58} provides a methodological analogy, not a tested lending intervention.
+ The narrower contribution is to place these known checks alongside accountable control requirements in one retrospective case study, and to document where the available evidence is inadequate for release or deployment. The proposed control framework is an illustration, not a prospectively tested intervention. In particular, this study cannot address reject inference because rejected applications are not observed.
+
+The paper makes four contributions. First, it treats outcome maturity as a release condition for credit-model validation. Second, it separates model performance from decision-policy performance by deriving thresholds from explicit cost ratios and reporting the associated review burden. Third, it attaches uncertainty and sample-adequacy requirements to subgroup and slice comparisons. Fourth, it maps each empirically supported failure mode to an owner, trigger, and mandatory response. The result is a policy-oriented evaluation suitable for model risk committees, consumer-outcome governance, and supervisory review. The term \emph{outcome maturity} is therefore not proposed as a new statistical treatment of censoring. Its contribution here is governance-oriented: it identifies whether sufficient outcome information exists for a stated classification validation claim, while established survival and competing-risk methods are used when unresolved follow-up is material \cite{ref49,ref50,ref51,ref52}. The paper's conceptual contribution lies in connecting this outcome-readiness requirement with calibration, operating-threshold approval, sample-qualified subgroup monitoring, and accountable governance actions.
+
+\section{Regulatory and Conceptual Framework}
+
+\subsection{Credit scoring as a policy system}
+
+A credit score ranks or estimates risk; it does not determine the acceptable balance among missed defaults, false alarms, credit access, manual-review capacity, and consumer impact. Those objectives are encoded by policy. This is a prediction-policy problem in the sense that the welfare effect of a prediction depends on the decision rule and institutional context in which it is used \cite{ref18}. Accordingly, the unit of governance should be the full decision system: data, model, calibration, threshold, overrides, monitoring, and remediation. Fairness terminology also requires discipline. The available experiment reports gaps across state, purpose, term, grade, and sub-grade. These are operationally important slices, but they are not substitutes for legally protected attributes. This paper therefore uses \emph{subgroup disparity} and \emph{consumer-outcome risk}, not a claim of unlawful discrimination. Formal fairness conclusions would require protected-class data, a legally appropriate comparator, and analysis of both direct and proxy pathways \cite{ref8,ref19}.
+
+\subsection{Regulatory expectations}
+
+The governance interpretation is grounded in primary regulatory sources. Under the EU Artificial Intelligence Act, AI used to evaluate the creditworthiness of natural persons is listed as high risk, except for fraud detection; the Act also requires risk management, data governance, declared performance, human oversight, lifecycle robustness, and post-market monitoring \cite{ref40}. The EBA Guidelines on loan origination and monitoring connect sound creditworthiness assessment with internal governance, monitoring, and consumer protection \cite{ref44}. In the United Kingdom, the FCA Consumer Duty requires firms to monitor retail-customer outcomes, identify whether groups experience different outcomes, determine root causes, and take appropriate action \cite{ref46}. The PRA's current model-risk principles emphasise model identification and classification, governance, development and use, independent validation, and mitigants, including for machine-learning models \cite{ref45}. Internationally, the NIST AI Risk Management Framework organises continuous governance through Govern, Map, Measure, and Manage functions \cite{ref39}; the revised US interagency model-risk guidance similarly emphasises a risk-based approach proportionate to model use and organisational complexity \cite{ref47}. These instruments differ in legal scope. They nevertheless converge on one operational proposition: validation must produce evidence that can trigger accountable action, not merely a scorecard.
+
+\noindent\textbf{Legal status and applicability.} These sources must not be treated as having equal legal force or as applying automatically to the US P2P sample. For systems used to assess the creditworthiness of natural persons in the EU, Article~6(2) and Annex~III, point~5(b), of Regulation (EU)~2024/1689 identify a high-risk use case, subject to the Regulation's exclusions, scope, transition dates, and exceptions for financial-fraud detection. Relevant provisions include Articles~9 (risk management), 10 (data governance), 14 (human oversight), 26 (deployer obligations), and, where applicable, 27 (fundamental-rights impact assessment) \cite{ref40}. This is binding EU legislation within its scope, not a legal finding about LendingClub. The EBA's EBA/GL/2020/06 consists of supervisory guidelines for relevant European institutions, with its own scope and implementation timetable \cite{ref44}. The UK's FCA Consumer Duty is a binding Handbook regime for relevant regulated retail activities, while PRA SS1/23 is a supervisory statement directed at specified PRA-regulated firms with relevant internal-model permissions; neither automatically governs a US platform \cite{ref45,ref46}. The US Federal Reserve letter SR~26-2, dated 17 April 2026, transmits revised interagency \emph{supervisory guidance on model risk management}, superseding SR~11-7, and states that it is expected to be most relevant to Federal Reserve-supervised banking organisations with assets above USD~30~billion \cite{ref47}. NIST AI RMF~1.0 is a voluntary risk-management framework, not a binding credit statute \cite{ref39}. These are comparative governance references, not evidence that this study verifies compliance in any jurisdiction.
+
+The April 2026 US interagency document is expressly supervisory guidance rather than an enforceable rule or a prescriptive capital requirement; lack of conformity with that guidance alone does not constitute a violation. The PRA statement likewise has a defined institutional scope, while EU AI Act obligations must be interpreted with the applicable commencement and transitional provisions. The comparison in this paper is therefore at the level of governance concepts, not a cross-jurisdiction compliance audit \cite{ref40,ref45,ref47}.
+
+
+\subsection{Policy propositions}
+
+The empirical design illustrates four policy propositions; it does not test the effect of putting the proposed controls into practice. \textbf{P1:} model complexity should not be assigned incremental governance value unless its out-of-time performance advantage is statistically supported and stable to reasonable changes in training-sample size. \textbf{P2:} outcome maturity and minimum sample size are prerequisites for credible calibration and subgroup claims. \textbf{P3:} the cost assumptions and review capacity used to select an operating threshold materially determine threshold-conditioned missed-adverse-outcome risk and review burden. \textbf{P4:} subgroup deterioration should be interpreted as an operative monitoring signal only when decision-loss differences are evaluated with explicit minimum-support requirements and appropriate uncertainty estimates. These are governance propositions rather than causal hypotheses; the analysis is diagnostic and retrospective. Section~\ref{sec:adjudication} states the verdict on each.
+
+\section{Data and Empirical Strategy}
+
+\subsection{Data, outcome, and information boundary}
+
+The analysis uses version 3 of the public \textit{Dataset from the US Peer-to-peer Lending Platform with Macroeconomic Variables} \cite{ref48}. The source contains 2,703,430 LendingClub loans originated in the United States between August 2012 and December 2019. The modelling frame combines application-time borrower, credit-history, contract, temporal, regional, and macroeconomic information. Direct payment, recovery, outstanding-principal, and final-status fields were intended to be excluded from the predictors, but the subsequent source-code audit identified retained date-derived and aggregate fields whose values may incorporate post-origination information. The original modelling specification contains 150 input variables, initially treated as information available at origination but not all independently verified at that decision time: 136 numeric and 14 categorical variables. High-cardinality free-text fields (\texttt{emp\_title}, \texttt{desc}, and \texttt{title}) and post-origination or outcome-dependent fields are excluded. Numeric variables are median-imputed and standardised, while categorical variables are most-frequent imputed and one-hot encoded with category cardinality capped at 50. Preprocessing is fitted using the mature training cohort and applied unchanged to validation and test data. The fitted preprocessing pipeline yields 384 transformed model inputs. No protected demographic attributes are available; state, purpose, grade, sub-grade, and term are therefore treated as operational slices, not as substitutes for protected characteristics. The binary classification target is derived from the recorded loan status. For the conventional classification analysis, outcome maturity is assessed using the available outcome information through the April 2020 accounting cutoff. A loan is classified as outcome-mature if either (i) its recorded status is terminal (Fully Paid, Charged Off, or Default), or (ii) the calendar time from the origination month to April 2020 is at least as long as its contractual term. Contractual terms are 36 or 60 months, so an unresolved loan is treated as mature when at least 36 or 60 months, respectively, have passed on the calendar since origination. Loans with shorter observable follow-up and no terminal status remain outcome-immature. This rule excludes recent unresolved loans, but calendar time alone cannot confirm that every older loan was observed through the end of its term. Importantly, maturity restriction does not eliminate right censoring without consequence: conditioning on resolved or sufficiently followed loans changes the evaluation population and may preferentially retain loans that resolve earlier. We therefore treat the mature-cohort classification analysis as one estimand and complement it with a time-to-event competing-risk analysis that retains unresolved loans as right-censored observations.
+
+\noindent\textbf{Feature availability and reproducibility boundary.} The 150-variable input list is generated from the saved \texttt{cell26\_locked\_feature\_specification.csv} after removing \texttt{emp\_title}, \texttt{desc}, and \texttt{title}; the complete machine-readable list must accompany the replication archive. An initial automated name-and-label screen flagged nine fields whose decision-time availability was uncertain; the subsequent audit of the source Stata construction code identified additional timing and aggregation concerns beyond those nine flags. In particular, funding amounts, an assigned grade, the contractual rate, and macroeconomic readings may only be known at different stages of underwriting or after publication. No ``leakage-free'' assertion can be made without loan-level decision-time provenance. For the existing pipeline, median imputation followed by \texttt{StandardScaler} is applied to numeric columns; mode imputation followed by one-hot encoding uses \texttt{handle\_unknown=ignore}, \texttt{max\_categories=50}, and dense output for categorical columns, including state and sub-grade. Thus rare categories may be grouped and unseen validation/test categories are ignored rather than assigned new learned coefficients. The raw 150 variables produce 384 encoded model inputs in the saved run. These transformations were fitted to the complete mature training cohort, not refitted in each smaller training-size condition.
+
+An automated check of variable names and data labels marked nine model inputs whose availability at the decision date needs confirmation: \texttt{cpi}, \texttt{funded\_amnt}, \texttt{funded\_amnt\_inv}, \texttt{grade}, \texttt{int\_rate}, \texttt{issue\_year}, \texttt{sub\_grade}, \texttt{unem\_rate}, and \texttt{unemployment}. That preliminary name-based check does not, by itself, prove data leakage or establish that the listed values were known at the credit-decision date.
+
+\noindent\textbf{Source-code timing audit and alternative predictor set.} The supplied \texttt{P2P\_Macro\_Codes.do} constructs \texttt{last\_date} from \texttt{last\_pymnt\_d}, then derives \texttt{year}, \texttt{month}, and \texttt{quarter} from that last-payment date. Its \texttt{loan\_vol} and \texttt{median\_dummy} depend on a last-payment-date grouping; \texttt{loan\_vol6m}/\texttt{loglvol\_6m} reflect issue-month aggregates rather than an established trailing six-month window, and two nominal six-month lag fields use row offsets without a verified calendar-lag interpretation. Funding-related fields such as \texttt{logfunded\_amnt} may also be unavailable at an application-stage decision. These are concrete concerns in the supplied construction logic, not proof that every stored source value was generated by precisely that code version. Independently, release timing of macroeconomic covariates is unverified. To test the sensitivity of the original conclusions without changing their reported models, we re-estimated the 180,000- and 1,304,058-observation endpoints after excluding 73 uncertain variables, retaining 77 candidate borrower/credit-history variables (159 encoded inputs). This is a conservative \emph{candidate} set, not an independently certified leakage-free information boundary. The same selected cohorts, model configurations, and seed 42 were used; the original 150-feature tables remain unchanged. Results are reported in Table~\ref{tab:r2_conservative_features}.
+
+
+For the binary classification task, an adverse outcome is defined from the source loan-status construction and includes Charged Off, Default, policy-related Charged Off, Late (16--30 days), and Late (31--120 days) statuses. The resulting classification endpoint is therefore broader than terminal charge-off alone. By contrast, the competing-risk robustness analysis uses observed charge-off as the timed adverse event using the available payment-date information as an event-time proxy, because an independently verified exact charge-off date is not available. Fully Paid is treated as a competing repayment event, including loans that repay before the contractual term. No loan-renewal or refinancing process is modelled. Throughout the threshold analysis, \emph{review rate} means the proportion of loans whose predicted risk exceeds the analytical review threshold; it does not refer to loan renewal.
+
+The dependent variable in the classification pipeline is the source \texttt{badloan} indicator, converted to a binary numeric label (with missing values filled with zero by the implementation). The available audits found no missing \texttt{badloan} values in the reconstructed mature training samples, but the treatment of missing labels remains a reproducibility rule that should not be generalised without verification. The outcome combines recorded charged-off/default and late statuses, so it is best called \emph{recorded adverse loan status}, not a verified 12-, 36-, or 60-month probability of default. The source-status categories and status composition should be released with the code; without a common event horizon the model is not estimating a fixed-horizon default risk. The time-to-event endpoint below is different because it counts charge-off as the adverse event and full repayment as a competing event. Neither target is a measure of approval decisions or outcomes among rejected applicants.
+
+\noindent\textbf{Auditable label mapping and non-equivalent endpoints.} The source Stata construction explicitly sets \texttt{badloan}=1 for \texttt{Charged Off}, \texttt{Default}, \texttt{Does not meet the credit policy. Status:Charged Off}, \texttt{Late (16-30 days)}, and \texttt{Late (31-120 days)}; it sets other statuses to zero. Consequently, zero means \emph{not in those five adverse-status categories at the recorded snapshot}, rather than verified freedom from default over a common number of months. A late loan can subsequently cure or charge off, and current loans have unresolved future outcomes. This is a status-snapshot classifier on an outcome-selected population, not a fixed-horizon probability-of-default estimator. The separate competing-risk charge-off endpoint excludes the late-status composite by design. Their event counts and risk estimates should not be combined, and neither endpoint is available for rejected applications. The original label and all corresponding numerical results are retained unchanged.
+
+\subsection{Chronological design and outcome maturity}
+
+Loans are assigned chronologically: the training period covers August 2012--June 2018, validation July 2018--March 2019, and testing April--December 2019. The full partitions contain 1,931,267, 370,994, and 401,169 loans, respectively. Applying the reproducible maturity rule retains 1,304,058 training loans, 27,374 validation loans, and 41,145 test loans, corresponding to maturity shares of 67.52\%, 7.38\%, and 10.26\%, respectively. The validation and test counts reproduce the evaluation cohorts used in the original analysis; reconstruction of the documented maturity rule yields a larger mature training cohort than the previously reported 875,616 observations. We therefore use the reproducibly reconstructed cohort in the revised analysis and report training-sample-size sensitivity separately. Tables~\ref{tab:flow_mature} and \ref{tab:maturity} report the resulting sample flow and prevalence consequences of the restriction. The subgroup analysis uses the state-level unemployment-rate field available in the loan-level data. The reproducible high-unemployment indicator is defined as a state unemployment rate of at least 4.9\%, yielding 641 loans in the outcome-mature test cohort. Because this variable varies primarily across states within the test period, we refer to these observations as the \emph{high-state-unemployment subgroup}, rather than as a national macroeconomic stress regime. The comparison is descriptive and does not identify a causal effect of unemployment. Figure~\ref{fig:model_governance_architecture} summarises the controlled model-family comparison, validation-based selection, and subsequent handoff to governance assessment.
+
+A further check found that all 27,374 retained validation loans and all 41,145 retained test loans qualified through their recorded terminal status. None of these recent loans could have completed a standard 36- or 60-month contract by April 2020. Thus, the test metrics describe loans recorded as resolved, not all loans issued in the test period. In training, 429,232 of the 1,304,058 retained loans had nonterminal status. Among these, 311,541 were 36-month loans from 2014 or 2016 still recorded as \texttt{Current} with \texttt{badloan}=0. This raises a question about complete follow-up, but does not prove that any specific label is wrong. The source does not provide independently verified dates for each terminal-status change, so the April 2020 cutoff should not be treated as a verified historical status snapshot.
+
+\noindent\textbf{What is estimated.} Let $S=1$ denote retention by the recorded maturity rule, $Y_{\mathrm{record}}$ the source adverse-status label, and $X$ the selected predictors. The empirical test prevalence estimates $\Pr(Y_{\mathrm{record}}=1\mid S=1,\,\mathrm{originated\ in\ April\mbox{--}December\ 2019})$, and the reported model scores measure prediction against this conditional label among selected loans. Neither quantity estimates a common-horizon default probability for all 401,169 test originations, much less for rejected applicants. The administrative reference date was \textbf{1 April 2020}, close to the start of the COVID-19 pandemic, but the dataset does not verify that every status was frozen on that date; this is an analytical cutoff, not a demonstrated pandemic effect or a validated status snapshot. Conditioning on a terminal outcome can preferentially retain early repayments and early adverse events, so the sign and size of selection bias in full-cohort performance are unknown. A reliable correction would require a documented event/status history, a common prediction horizon and censoring-aware model validation; the current study does not supply those ingredients.
+
+\noindent\textbf{Selection-bias identification limit and release implication.} In the selected recent cohorts, inclusion depends on the realised terminal-status process: every retained validation and test record has a recorded terminal status, whereas 343,620 validation and 360,024 test originations are excluded. Therefore the reported ROC-AUC, Brier scores, calibration and threshold costs target the \(S=1\) subset only. Reweighting these estimates to all originations would require defensible selection probabilities, a consistent historical snapshot, and observed or appropriately censored outcomes for the excluded loans; those requirements are not established. The 2.96\% all-status test proportion cannot be used as an unbiased full-cohort comparator because many unresolved accounts are coded as non-adverse at the snapshot. A defensible production release would require an independent fixed-horizon evaluation cohort or censoring-aware discrimination and calibration methods with verifiable event histories. Until then, the appropriate governance decision is to restrict the scope of claims, not to describe the problem as statistically corrected.
+
+\subsection{Right censoring and competing-risk robustness}
+\label{sec:competingrisk}
+
+Because only a minority of recent validation and test originations satisfy the conventional outcome-maturity rule, we additionally analyse loan outcomes in a time-to-event framework rather than discarding unresolved observations. The competing-risk analysis distinguishes charged-off loans from fully paid loans, while loans without either observed event by their last observable payment horizon are treated as right-censored. Fully paid loans are treated as a competing event because repayment terminates subsequent observation of charge-off under the original loan contract rather than constituting ordinary censoring. The use of time-to-event methods in credit scoring is well established. Survival models have been applied to personal-loan credit risk, to time-varying macroeconomic effects on default, and to benchmarking time-to-default methods, while more recent online-lending work explicitly models default and early repayment as competing events \cite{ref49,ref50,ref51,ref52}. Accordingly, we do not present outcome maturity as a new survival-analysis concept. We use it as a governance-readiness condition for determining when conventional binary classification metrics are interpretable, while right-censoring and competing-risk methods provide the appropriate complementary estimand when outcomes remain unresolved. Of the 2,703,430 source loans, 2,700,690 (99.90\%) contain sufficient timing information for the competing-risk construction. The analysis identifies 175,144 observed charge-offs and 765,339 fully paid loans, while 1,760,207 unresolved observations are retained as right-censored rather than being classified as non-defaults. A further 2,740 charged-off records lack usable event timing and are excluded from this time-to-event analysis. Event time is measured from origination, with same-month events assigned to the first month.
+
+We estimate cumulative incidence for charge-off in the presence of the competing fully-paid event and report horizons with adequate empirical support. The numbers remaining at risk decline substantially with horizon: 1,092,889 loans (40.47\% of the competing-risk cohort) remain at risk at 12 months, 522,416 (19.34\%) at 24 months, and 221,142 (8.19\%) at 36 months. Consequently, interpretation focuses on 12-, 24-, and 36-month horizons and does not extrapolate to contractual horizons unsupported by the available observation window. Loan-level bootstrap intervals are used as a robustness check for the cumulative-incidence estimates.
+
+The available timing fields do not independently confirm the exact dates of charge-off and repayment. The competing-risk estimates therefore depend on date proxies and should be treated as descriptive checks, not as proof that the outcome-selection bias in the classification analysis has been removed.
+
+
+\begin{figure*}[!ht]
+    \centering
+    \includegraphics[width=\textwidth]{pics/model_governance_architecture.jpeg}
+\caption{Controlled model-family comparison and governance hand-off.
+All candidate models use the same reconstructed original feature representation,
+whose decision-time availability is not fully verified, comprising 150 raw input variables transformed to
+384 model inputs after training-fitted preprocessing, and estimate a common
+binary adverse-outcome risk score while differing in representational
+capacity: SGD logistic regression provides the linear governance benchmark,
+HistGB captures nonlinear tree-based interactions, and the MLP provides a
+nonlinear neural comparator. Model selection is performed using the
+pre-specified validation ROC-AUC criterion, after which the selected HistGB
+model is passed to downstream calibration, threshold, subgroup- and
+slice-level, and policy-control assessments.}
+\label{fig:model_governance_architecture}
+\end{figure*}
+
+
+
+\noindent\textbf{Limits of the competing-risk exercise.} These cumulative-incidence curves do not predict \texttt{badloan} for the young loans omitted from classification, do not evaluate the discrimination or calibration of the three fitted classifiers under censoring, and do not identify the direction of selection bias. They use a different event endpoint and proxy payment timing rather than independently verified default dates. The analysis is therefore a separate descriptive view of recorded resolution, not an external validation or statistical correction of the classification estimand.
+
+\noindent\textbf{Classifier validation under censoring: a separate missing test.} A fixed-horizon evaluation of the fitted scores would require, for example, prediction at a prespecified 12-, 24-, or 36-month horizon; verified event and censoring times; a definition of how full repayment enters the estimand; and time-dependent discrimination, calibration and decision analysis on the eligible origination population. Inverse-probability-of-censoring weighting or competing-risk prediction methods might then be assessed under explicit assumptions. No such time-dependent performance estimate has been produced here. The cumulative-incidence numbers in Table~\ref{tab:competing_risk} are descriptive outcomes of a different event process and must not be represented as validation of the original \texttt{badloan} classifiers. This is an outstanding empirical validation requirement, rather than an analytical result inferred from the existing competing-risk curves.
+
+\subsection{Models, selection, and uncertainty}
+\label{sec:models}
+
+Three model families are compared on a common reproducible feature representation: stochastic-gradient-descent logistic regression, histogram gradient boosting (HistGB), and a multilayer perceptron (MLP), implemented using scikit-learn \cite{ref41}. To determine whether conclusions about model complexity depend on the amount of training data, we estimate each family using nested training samples of 180,000, 360,000, and 540,000 mature loans and the full mature training cohort of 1,304,058 loans. The principal comparison reports ROC-AUC, Brier score, and log loss on the fixed chronological validation and test cohorts. This training-size analysis is used to assess whether the previously used 180,000-observation design provides a stable basis for comparing model families.
+
+The 180,000-observation condition is retained solely to reproduce the previously used training design and to provide an explicit sensitivity anchor; it is not treated as the preferred estimation sample in the revised analysis, whose principal full-training comparison uses all 1,304,058 outcome-mature training loans. The model specifications are held fixed across training-size conditions. The SGD logistic-regression benchmark uses log-loss with L2 regularisation, $\alpha=10^{-5}$, \texttt{max\_iter}=100, and \texttt{tol}=$10^{-4}$. HistGB uses maximum tree depth 6, learning rate 0.05, 300 boosting iterations, and random seed 42. The MLP uses two hidden layers of 128 and 64 units, the Adam optimiser \cite{ref42}, \texttt{max\_iter}=50, early stopping with a 10\% internal validation fraction, and five iterations without improvement before stopping. The deterministic model-development seed is 42. These specifications are held constant so that the training-size analysis changes the amount of training information rather than the modelling configuration.
+
+For each training-size comparison, the preprocessing transformer was fitted once on the full mature training cohort before the smaller samples were transformed. Model fitting used only the stated sample size, but preprocessing had access to the full training cohort in every run. No validation or test records were used to fit that transformer. The training-size comparisons are therefore not strictly independent end-to-end training runs. The membership is reproducible: \texttt{numpy.random.default\_rng(42)} generates one permutation of the 1,304,058-row mature training frame, and the first 180,000, 360,000, and 540,000 positions define nested subsets. No stratification by issue year or independent repetition with different sampling seeds was performed. A separate deterministic audit found that the shares of \texttt{Current} 36-month loans issued in 2014 or 2016 were 23.95\%, 23.91\%, 23.84\%, and 23.89\% in these four samples, respectively. Similar shares for this one group do not rule out differences in other vintages or label maturity. Since only one permutation and one fitting seed were used and hyperparameters were not retuned as sample size changed, the ranking reversal cannot be attributed solely to the amount of training data. Table~\ref{tab:r2_sample_composition} gives the corresponding audit counts.
+
+Because comparisons based only on variability across random seeds do not quantify uncertainty in paired performance differences on the common test cohort, formal model comparisons use a paired stratified bootstrap. For the 180,000-observation and full-cohort training regimes used for formal endpoint comparisons, 2,000 bootstrap replicates are drawn with replacement within the adverse-outcome and non-event strata of the fixed 41,145-loan test cohort, using the same resampled observations for each pair of models. The intermediate 360,000- and 540,000-observation fits are retained for training-size sensitivity analysis rather than formal paired-inference reporting. For models $A$ and $B$, each replicate estimates the paired difference $M_A-M_B$ in ROC-AUC, Brier score, and log loss. For ROC-AUC comparisons we report the observed paired difference, its percentile 95\% confidence interval, and a two-sided bootstrap $p$-value. Proper-score differences are reported as complementary contrasts, with bootstrap confidence intervals where retained from the analysis output. These comparisons test differences rather than equivalence; absence of a statistically detectable difference would therefore not, by itself, establish model equivalence. Resampling the same test observations holds the fitted models, preprocessing, model selection and historical windows fixed. It does not propagate uncertainty in training-sample selection, hyperparameter tuning, fitting, state-level clustering, origination-month shocks, or validation reuse. The reported confidence intervals therefore describe conditional loan-level resampling, not end-to-end or population-wide uncertainty. With 2,000 replicates and an add-one sign-based two-sided calculation, \(p=0.001\) is effectively the smallest resolvable reported value, not evidence of finer precision. Multiple model, threshold, calibration and subgroup comparisons were not adjusted for multiplicity. State-cluster and origination-month-block resampling, as well as the limited three-seed analysis reported below, were subsequently completed; however, joint two-way clustering, end-to-end training-pipeline resampling, nested model selection, and multiplicity adjustment remain unperformed.
+
+
+\subsection{Validation-only probability recalibration}
+
+The full-training HistGB estimator is carried forward for the governance analysis because it has the highest validation ROC-AUC among the full-training candidates (0.6966, compared with 0.6932 for the MLP and 0.6926 for logistic regression). This selection is made without reference to test performance. The validation ROC-AUC margin between HistGB (0.6966) and the MLP (0.6932) is only about 0.0035. A subsequent 2,000-replicate paired, outcome-stratified validation bootstrap estimated HistGB--MLP $\Delta\mathrm{AUC}=0.003463$ (95\% CI [$-0.004777$, $0.011918$]) and HistGB--logistic $\Delta\mathrm{AUC}=0.004044$ (95\% CI [$-0.003713$, $0.012025$]); neither interval excludes zero. The same 27,374 validation outcomes subsequently estimate recalibration parameters and optimise thresholds, so the design is not an independent three-way validation of those stages. The held-out test was not used to fit the calibrator or choose thresholds, but repeated reuse of validation data can still favour the selected pipeline. HistGB is also weaker than full-training logistic regression on the final test ROC-AUC (0.6750 versus 0.6993). A nested or separate calibration/threshold window would be needed to evaluate selection optimism; the paired validation bootstrap cannot correct optimism from selecting a winner on the same validation observations later reused for recalibration and threshold fitting. Because its raw probabilities are materially miscalibrated, we fit a logistic recalibration model on the outcome-mature validation cohort only,
+
+\[
+\operatorname{logit}(Y)=a+b\,\operatorname{logit}(\hat p_{\mathrm{raw}}),
+\]
+
+where $a$ and $b$ are estimated using the validation outcomes and raw HistGB probabilities. The fitted transformation is then applied unchanged to the test predictions. Calibration is assessed before and after recalibration using mean predicted probability, ROC-AUC, Brier score, log loss, ten-bin Expected Calibration Error (ECE), calibration intercept, and calibration slope. Recalibration is completed before threshold optimisation so that probability-dependent policy analysis is based on the recalibrated probability scale. ECE here is the weighted mean absolute observed-versus-predicted rate difference over \textbf{ten equal-width bins on $[0,1]$}, skipping empty bins; it is not an equal-frequency ECE. An aggregate ten-bin ECE does not establish calibration within the high-risk tail, across origination months, within grade/state subgroups or under a different event horizon. The calibration intercept and slope are descriptive diagnostics rather than a guarantee of transportability.
+
+Supplementary Table~\ref{tab:supp_selection} reports the paired validation-AUC model-selection contrasts.
+
+
+
+\subsection{Threshold and subgroup-slice design}
+
+Thresholds are selected on validation data, not chosen as generic probability cut-offs. For a threshold $t$, cost is
+\[
+  C(t)=c_{\mathrm{FN}}\,\mathrm{FN}(t)+c_{\mathrm{FP}}\,\mathrm{FP}(t),
+\]
+where $c_{\mathrm{FN}}/c_{\mathrm{FP}}$ takes values 5, 10, and 20. The validation-minimising threshold is then applied once to the test cohort. We report false-negative rate (FNR), review rate (the share flagged), precision, analytical test cost, and net benefit relative to reviewing no loans. The cost ratios are analytical scenarios, not estimates of a lender's actual costs.
+
+The values 5:1, 10:1, and 20:1 are examples chosen to show what happens when missing an adverse loan outcome is assigned a higher cost than an unnecessary risk flag. They are not estimated from actual lender losses or staff costs. The formula counts false negatives and false positives, but does not include the time, cost, effectiveness, or capacity of human review. A lender would need its own cost and review data before selecting a threshold for real use. With a perfectly calibrated event probability and the stated \emph{binary classification} loss, the theoretical decision boundary is $t^{*}=c_{\mathrm{FP}}/(c_{\mathrm{FN}}+c_{\mathrm{FP}})=1/(1+r)$ for $r=c_{\mathrm{FN}}/c_{\mathrm{FP}}$, before allowing for review effectiveness, resource limits or other outcomes. For $r=5,10,20$, these idealised boundaries are 0.1667, 0.0909, and 0.0476; the separately validation-optimised thresholds reported here are 0.1730, 0.0962, and 0.0327. This cost-ratio dependence is a known mechanical property, not a new discovery or proof that the chosen thresholds are optimal for a lending institution \cite{ref57,ref58}.
+
+For clarity, \emph{review rate} is an analytical decision-policy quantity and is unrelated to loan renewal, refinancing, or extension. For a calibrated predicted probability $\hat p_i$ and threshold $t$, the review rate is
+
+\[
+R(t)=\frac{1}{N}\sum_{i=1}^{N}\mathbb{I}(\hat p_i \geq t),
+\]
+
+that is, the proportion of loans whose predicted adverse-outcome risk exceeds the operating threshold and would therefore be flagged for analytical review. No renewal mechanism, renewal probability, or refinancing method is estimated in this study. Variation in review rates arises because each assumed FN:FP cost ratio produces a different cost-minimising threshold on the recalibrated validation probabilities. The selected threshold is then applied unchanged to the recalibrated test probabilities. The subgroup audit compares high-state-unemployment and other-state observations within grade $\times$ term cells. To avoid treating extremely sparse event cells as operative monitoring evidence, a cell is reported only when both unemployment groups contain at least 10 adverse outcomes and at least 10 non-events. FNR is evaluated using the recalibrated validation-selected threshold of 0.0962 under the intermediate 10:1 cost scenario, and Wilson 95\% confidence intervals are reported for the FNR. Only four grade $\times$ term cells satisfy the strengthened support rule: C--36 months, C--60 months, D--36 months, and D--60 months. These comparisons are descriptive monitoring diagnostics; they do not constitute protected-class evidence or identify a causal unemployment effect.
+
+\noindent\textbf{What a flag would mean.} The analysed action is to \emph{flag a record} according to a threshold on its retrospective score. The data do not show that a trained human reviewed it, changed a credit decision, reduced defaults, or incurred a known cost. A deployable policy would have to specify the review trigger, who makes the final credit decision, possible outcomes (approve, reject, request evidence or amend terms), time to decision, staff capacity, review costs, override logging, appeals, and consumer impact. State is a location proxy, not a protected attribute, and geographic risk flags should not be treated as authorisation to discriminate against individuals. Such safeguards and their practical effectiveness have not been tested here.
+
+\noindent\textbf{Cost parameter and capacity identification.} In the reported loss, a false negative and a false positive have the relative weights \(r:1\); this is a \emph{normalised analytical classification loss}, not a monetary estimate. The false-positive term describes a wrong score-based flag under the chosen label, not a measured salary cost or adverse consumer effect of human review. A deployable constrained rule would need an independently estimated loss matrix and a capacity requirement such as \(N_{\mathrm{flag}}(t)\leq K\), where \(K\) is the number of cases that appropriately trained reviewers can handle during a stated operational period. Applying the recorded flag proportions to the 41,145 selected test loans corresponds to approximately 3,187, 15,442, and 34,996 flagged cases across the 5:1, 10:1 and 20:1 scenarios, respectively; these are retrospective \emph{counts of score flags}, not observed referrals or a staffing forecast. No arrival-time distribution, handling time, review effectiveness, override cost, borrower-impact cost or staff-capacity \(K\) was measured. Hence no evaluated threshold can be justified here as an economically optimal operating point. Institution-specific cost and throughput data, measured intervention outcomes and consumer safeguards would be needed before threshold approval.
+
+\subsection{Policy interpretation}
+
+The analysis separates four layers: model discrimination, probability calibration, decision performance at an approved operating point, and performance in pre-specified regimes and slices. The empirical quantities are converted into controls only when an institution can specify an owner, a tolerance, a minimum evidential sample, and a mandatory action. This distinction is important because the evaluated thresholds are adverse-outcome risk flags for analytical review; they are not claimed to reproduce LendingClub's historical approval, pricing, or rejection policy. The governance recommendations are separated according to their evidential basis. Requirements concerning outcome-readiness diagnostics, training-size sensitivity, recalibration before probability-dependent threshold analysis, explicit threshold consequences, and minimum event support for segmented monitoring are motivated directly by the empirical results reported here. By contrast, recommendations concerning named control ownership, escalation authority, human oversight, governing-body reporting, and release or suspension decisions are institutional design implications derived from the regulatory and model-risk frameworks reviewed in Section~2. The empirical analysis demonstrates why such controls may be needed; it does not estimate the causal effect or legal sufficiency of any particular governance arrangement.
+
+\section{Results}
+\label{sec:reanalysis}
+
+The revised empirical analysis distinguishes two complementary outcome estimands. Conventional classification, calibration, and threshold diagnostics are evaluated on the outcome-mature cohort, while a competing-risk analysis retains unresolved observations as right-censored and treats full repayment as a competing event. This separation prevents immature outcomes from being silently treated as observed non-defaults while making explicit that mature-cohort classification results are conditional on outcome readiness rather than representative estimates for all originations.
+
+\subsection{Sample flow and outcome maturity}
+
+Table~\ref{tab:flow_mature} traces the cohort from the source deposit to the estimation samples, and Table~\ref{tab:maturity} reports the maturity and prevalence consequences of the restriction.
+
+\begin{table}[!ht]
+\centering
+\caption{Sample flow for the outcome-mature analysis. Chronological assignment uses the periods August 2012--June 2018 (training), July 2018--March 2019 (validation), and April--December 2019 (testing). The mature cohort retains loans with a terminal status or elapsed calendar time from origination to the April 2020 cutoff at least as long as the contractual term.}
+\label{tab:flow_mature}
+\begin{tabular}{llr}
+\toprule
+Stage & Split & Observations \\
+\midrule
+Raw source records & All & 2,703,430 \\
+Valid target and issue date & All & 2,703,430 \\
+\midrule
+Chronological split & Train & 1,931,267 \\
+Outcome-mature cohort & Train & 1,304,058 \\
+Chronological split & Validation & 370,994 \\
+Outcome-mature cohort & Validation & 27,374 \\
+Chronological split & Test & 401,169 \\
+Outcome-mature cohort & Test & 41,145 \\
+\bottomrule
+\end{tabular}
+
+\vspace{3pt}
+{\footnotesize \textit{Notes:} Outcome maturity requires a terminal status (Fully Paid, Charged Off, or Default) or elapsed calendar time since origination at least equal to the contractual term; calendar eligibility does not independently verify complete outcome observation. The revised analysis uses the reproducibly reconstructed mature training cohort; sensitivity to the previously used 180,000-observation training sample is reported separately.}
+\end{table}
+
+\begin{table}[!ht]
+\centering
+\caption{Outcome maturity and prevalence by chronological split. The all-label rate treats every recorded label as observed; the mature rate restricts evaluation to loans meeting the outcome-maturity rule.}
+\label{tab:maturity}
+\resizebox{\textwidth}{!}{ 
+\begin{tabular}{lccrrrrrr}
+\toprule
+Split & Date range & $n$ total & $n$ mature & $n$ immature & Maturity share & Adverse-outcome rate (all recorded statuses) & Adverse-outcome rate (mature) \\
+\midrule
+Train & 2012-08 to 2018-06 & 1,931,267 & 1,304,058 & 627,209 & 0.6752 & 0.1019 & 0.1389 \\
+Validation & 2018-07 to 2019-03 & 370,994 & 27,374 & 343,620 & 0.0738 & 0.0215 & 0.1012 \\
+Test & 2019-04 to 2019-12 & 401,169 & 41,145 & 360,024 & 0.1026 & 0.0296 & 0.1464 \\
+\bottomrule
+\end{tabular}}
+
+\vspace{3pt}
+{\footnotesize \textit{Notes:} Maturity share is $n$ mature divided by $n$ total. The ``all recorded labels'' rate describes the statuses recorded in the source data without requiring sufficient outcome follow-up; it should not be interpreted as a fully observed cumulative default probability. Restricting to outcome-mature loans changes the evaluation population and therefore the estimand.}
+\end{table}
+
+Only 10.3\% of test-period originations satisfy the outcome-maturity rule. The recorded adverse-outcome prevalence is 14.64\% in this mature cohort compared with 2.96\% when statuses from all test-period loans are tabulated without requiring adequate follow-up. The magnitude of this prevalence shift shows that outcome maturity is material to the evaluation population and cannot be treated as a second-order validation issue. At the same time, the mature-cohort estimate is not an unbiased substitute for the unresolved full cohort: conditioning on sufficient follow-up or terminal resolution changes the estimand and may select loans that resolve earlier. We therefore use the competing-risk analysis below to retain unresolved loans as right-censored observations and to examine whether the substantive conclusion that outcome timing materially affects evaluation remains supported.
+
+\subsection{Competing-risk robustness to outcome censoring}
+
+The time-to-event analysis confirms that unresolved outcomes are quantitatively important rather than a minor feature of the sample. Of 2,700,690 loans with usable event timing, 1,760,207 remain right-censored, 765,339 are observed as fully paid, and 175,144 experience an observed charge-off. Treating full repayment as a competing event, the estimated cumulative incidence of charge-off is 0.0161 at 6 months, 0.0413 at 12 months, 0.0750 at 18 months, 0.1061 at 24 months, and 0.1419 at 36 months. The corresponding cumulative incidence of full repayment is 0.0650, 0.1438, 0.2370, 0.3329, and 0.6748. Contractual term is materially associated with the event process. At 36 months, estimated charge-off cumulative incidence is 0.1210 for 36-month loans and 0.1916 for 60-month loans, while cumulative full-repayment incidence is 0.8014 and 0.3752, respectively. These horizon-specific estimates should be interpreted in light of declining risk-set support: 40.47\% of the competing-risk cohort remains at risk at 12 months, 19.34\% at 24 months, and 8.19\% at 36 months. We therefore do not extrapolate a 60-month cumulative incidence from these data. A loan-level bootstrap confirms that sampling uncertainty around the aggregate charge-off cumulative incidence is small relative to the substantive effect of outcome timing: the 95\% bootstrap intervals are [0.0410, 0.0416] at 12 months, [0.1057, 0.1067] at 24 months, and [0.1413, 0.1426] at 36 months. The competing-risk analysis does not imply that the mature subset represents the full origination cohort. Rather, it demonstrates that censoring and early repayment are integral components of the observed outcome process. Accordingly, the mature-cohort classification results below are interpreted as conditional performance estimates, while the competing-risk results provide a robustness analysis that avoids recoding unresolved loans as observed non-defaults.
+
+\subsection{Model comparison and training-sample-size sensitivity}
+\label{sec:modelcomparison}
+
+
+\begin{table}[!ht]
+\centering
+\caption{Training-sample-size sensitivity on the fixed outcome-mature validation and test cohorts. Lower Brier score and log loss indicate better probability quality.}
+\label{tab:training_size}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lrrrrr}
+\toprule
+Training size & Model & Validation ROC-AUC & Test ROC-AUC & Test Brier & Test log loss \\
+\midrule
+180,000
+& Logistic & 0.6108 & 0.6461 & 0.1575 & 0.5158 \\
+& HistGB & 0.7308 & 0.6977 & 0.1344 & 0.5006 \\
+& MLP & 0.7052 & 0.7189 & 0.1161 & 0.3887 \\
+\midrule
+360,000
+& Logistic & 0.6475 & 0.6722 & 0.1434 & 0.4645 \\
+& HistGB & 0.7115 & 0.6876 & 0.1368 & 0.5344 \\
+& MLP & 0.6888 & 0.7003 & 0.1231 & 0.4405 \\
+\midrule
+540,000
+& Logistic & 0.6485 & 0.6654 & 0.1353 & 0.4542 \\
+& HistGB & 0.6900 & 0.6746 & 0.1370 & 0.5428 \\
+& MLP & 0.7241 & 0.6943 & 0.1253 & 0.4641 \\
+\midrule
+1,304,058
+& Logistic & 0.6926 & 0.6993 & 0.1294 & 0.4205 \\
+& HistGB & 0.6966 & 0.6750 & 0.1367 & 0.5292 \\
+& MLP & 0.6932 & 0.6463 & 0.1315 & 0.5032 \\
+\bottomrule
+\end{tabular}}
+\vspace{3pt}
+
+{\footnotesize \textit{Notes:} Validation and test cohorts are held fixed at 27,374 and 41,145 loans, respectively. Training samples are nested within the mature training cohort. The full-training HistGB model has the highest validation ROC-AUC (0.6966) among the full-training candidates and is therefore selected, without reference to test performance, for the subsequent calibration and policy analyses.}
+\end{table}
+
+The model-family comparison is sensitive to the amount of training data. Table~\ref{tab:training_size} reports performance for nested training samples of 180,000, 360,000, and 540,000 mature loans and for the full mature training cohort of 1,304,058 loans. At 180,000 observations, the MLP has the highest test ROC-AUC (0.7189), followed by HistGB (0.6977) and logistic regression (0.6461). This ordering does not persist as the training sample increases. With the full mature training cohort, logistic regression has the highest test ROC-AUC (0.6993), followed by HistGB (0.6750) and the MLP (0.6463). The sensitivity is also visible in the proper scoring rules. Relative to its 180,000-observation fit, full-sample logistic regression improves test ROC-AUC by 0.0532, reduces Brier score by 0.0281, and reduces log loss by 0.0953. HistGB changes by $-0.0226$ in ROC-AUC, $+0.0024$ in Brier score, and $+0.0286$ in log loss, while the corresponding MLP changes are $-0.0727$, $+0.0154$, and $+0.1145$. Thus, the 180,000-observation design cannot be treated as an innocuous approximation to the full training cohort. These results do not establish equivalence among model families. Instead, they show that model ranking is sensitive to training-sample size and that greater model complexity does not provide a stable performance advantage across the evaluated training regimes.
+
+
+
+Figure~\ref{fig:training_size_auc} displays the fixed-test ROC-AUC of all three original model families at each of the four nested training sizes.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[
+        width=0.90\textwidth
+    ]{pics/Figure_04_Training_Size_Test_AUC.pdf}
+    \caption{
+    \textbf{Out-of-time model discrimination across training-sample sizes.}
+    Test ROC-AUC values are reported for stochastic-gradient-descent
+    logistic regression (SGD Logistic), histogram gradient boosting
+    (HistGB), and the multilayer perceptron (MLP), evaluated using
+    nested training samples of 180,000, 360,000, 540,000, and
+    1,304,058 outcome-mature loans.
+    At 180,000 training observations, the test ROC-AUC values are
+    0.6461 (Logistic), 0.6977 (HistGB), and 0.7189 (MLP).
+    At 360,000 observations, the corresponding values are
+    0.6722, 0.6876, and 0.7003; at 540,000 observations,
+    they are 0.6654, 0.6746, and 0.6943.
+    With the full training cohort of 1,304,058 observations,
+    logistic regression achieves the highest test ROC-AUC
+    (0.6993), followed by HistGB (0.6750) and MLP (0.6463).
+    The experiment uses random seed 42, the original
+    150-variable specification, and the fixed selected
+    April--December 2019 test cohort ($n=41{,}145$).
+    The ranking reversal illustrates sensitivity to the
+    training regime rather than an isolated causal effect
+    of sample size. Preprocessing was fitted on the full
+    mature training cohort, and the original ordering
+    does not persist under the alternative 77-variable
+    predictor specification.
+    }
+    \label{fig:training_size_auc}
+\end{figure}
+
+\noindent\textbf{Sampling interpretation.} The training-sample-size results should be called a single-seed sensitivity illustration, not a clean experiment isolating sample size. The 180,000-loan subsample contains 43,108 of the flagged 2014/2016 \texttt{Current} observations; the full training sample contains 311,541. These counts confirm that potentially incomplete recorded outcomes enter each training regime. They do not show which individual outcomes are incorrect, nor whether retraining with independently matured labels would preserve the model rankings.
+
+\noindent\textbf{Three-seed endpoint check.} A separate, explicitly limited sensitivity re-fitted the original 150-feature estimators for seeds 7, 42, and 101 at the 180,000-observation and full-training endpoints, using fixed original model settings and the same selected test cohort. In each of these three seeds, the MLP ranks first by test ROC-AUC at 180,000 observations, whereas logistic regression ranks first at full training. The numerical values vary across seeds, and validation-based model-family selection is itself seed-dependent: HistGB is the leading full-training validation model under seed 42, but the MLP leads under seeds 7 and 101. This does not constitute nested hyperparameter selection, independent preprocessing per subsample, or an estimate of the full training-pipeline variance. An annual-vintage composition check showed similar issue-year shares across the nested training samples (maximum deviation from full-cohort shares of about 0.18 percentage points at $n=180{,}000$), which does not rule out finer vintage, status, or predictor effects.
+
+\begin{table}[!ht]
+\centering
+\caption{Additional seed sensitivity for the existing 150-variable specification. Values are test ROC-AUC, using the same selected test cohort and fixed estimator settings.}
+\label{tab:r2_seed_sensitivity}
+\begin{tabular}{rrccc}
+\toprule
+Training $n$ & Seed & Logistic & HistGB & MLP \\
+\midrule
+180,000 & 7 & 0.627190 & 0.677096 & 0.714002 \\
+180,000 & 42 & 0.646062 & 0.697660 & 0.718945 \\
+180,000 & 101 & 0.647351 & 0.685086 & 0.728127 \\
+\midrule
+1,304,058 & 7 & 0.695398 & 0.688469 & 0.614707 \\
+1,304,058 & 42 & 0.699310 & 0.675016 & 0.646276 \\
+1,304,058 & 101 & 0.687407 & 0.679957 & 0.645038 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}
+{\footnotesize \textit{Notes:} These three seeds constitute a sensitivity check, not an exhaustive stability assessment. The original seed-42 test metrics in Table~\ref{tab:training_size} are retained without replacement.}
+\end{table}
+
+Table~\ref{tab:r2_seed_sensitivity} reports the corresponding three-seed test ROC-AUC values for the two training-size endpoints.
+
+\noindent\textbf{Predictor-specification sensitivity.} The restricted candidate predictor set materially changes the model-family ordering and proper scores (Table~\ref{tab:r2_conservative_features}). With the original 150 features, the 180,000-observation MLP and full-training logistic model rank first by test ROC-AUC. With 77 candidate predictors, HistGB ranks first at both endpoints (0.672835 and 0.682980), and all three models have higher test ROC-AUC at full training than at 180,000 observations. Consequently, the original ranking reversal is not robust to predictor specification and cannot be interpreted as a causal effect of sample size or evidence of a universally preferable model. The 77-feature candidate set still requires independent historical decision-time verification and does not correct outcome-selected cohort membership.
+
+\begin{table}[!ht]
+\centering
+\caption{Original versus conservative-candidate feature sensitivity, holding the seed, cohorts and estimator settings fixed. Lower Brier scores are better.}
+\label{tab:r2_conservative_features}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{rlrrrr}
+\toprule
+Training $n$ & Model & Original 150-feature AUC & 77-feature AUC & Original 150-feature Brier & 77-feature Brier \\
+\midrule
+180,000 & Logistic & 0.646062 & 0.622867 & 0.157529 & 0.128628 \\
+180,000 & HistGB & 0.697660 & 0.672835 & 0.134361 & 0.120095 \\
+180,000 & MLP & 0.718945 & 0.660499 & 0.116114 & 0.122855 \\
+\midrule
+1,304,058 & Logistic & 0.699310 & 0.645344 & 0.129401 & 0.124274 \\
+1,304,058 & HistGB & 0.675016 & 0.682980 & 0.136718 & 0.119098 \\
+1,304,058 & MLP & 0.646276 & 0.676072 & 0.131485 & 0.119879 \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+{\footnotesize \textit{Notes:} The sensitivity removes 73 uncertain variables from the original 150, yielding 77 raw/159 encoded candidate variables; it does not certify historical availability. All results use the previously selected test population, whose inclusion is outcome-dependent.}
+\end{table}
+
+
+\subsection{Paired inference for model-performance differences}
+\label{sec:pairedinference}
+
+Table~\ref{tab:paired_bootstrap} reports paired stratified-bootstrap comparisons on the common test cohort. At the 180,000-observation training size, the ROC-AUC differences favour HistGB over logistic regression by 0.0516 and the MLP over logistic regression by 0.0729; the MLP also exceeds HistGB by 0.0213. All corresponding 95\% confidence intervals exclude zero. The ordering reverses under full-cohort training. Logistic regression exceeds HistGB in ROC-AUC by 0.0243 (95\% CI [0.0184, 0.0297]) and exceeds the MLP by 0.0530 (95\% CI [0.0460, 0.0600]). HistGB exceeds the MLP by 0.0287 (95\% CI [0.0213, 0.0360]). The paired comparisons therefore provide evidence of performance differences, but not of a model-family ordering that is invariant to training-sample size. The proper scoring rules reinforce this qualification. Under full-cohort training, logistic regression has lower Brier score than HistGB by 0.0073 and lower log loss by 0.1087; it also has lower Brier score than the MLP by 0.0021 and lower log loss by 0.0827. Accordingly, we do not interpret a small marginal difference in one training regime as evidence that the model families are equivalent. The supported conclusion is narrower: model ranking is training-size dependent, and increased representational complexity does not deliver a stable out-of-time advantage across the evaluated training regimes.
+
+
+
+\begin{table}[!ht]
+\centering
+\caption{Paired stratified-bootstrap comparisons of test performance. Differences are reported as Model A minus Model B; 95\% confidence intervals are based on 2,000 paired bootstrap replicates.}
+\label{tab:paired_bootstrap}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrr}
+\toprule
+Training size & Comparison (A--B) & ROC-AUC difference [95\% CI] & Brier difference & Log-loss difference \\
+\midrule
+180,000
+& Logistic--HistGB
+& $-0.0516$ [$-0.0587$, $-0.0446$]
+& $+0.0232$ [$+0.0214$, $+0.0249$]
+& $+0.0152$ [$+0.0084$, $+0.0220$] \\
+
+& Logistic--MLP
+& $-0.0729$ [$-0.0785$, $-0.0670$]
+& $+0.0414$
+& $+0.1271$ \\
+
+& HistGB--MLP
+& $-0.0213$ [$-0.0265$, $-0.0159$]
+& $+0.0182$
+& $+0.1119$ \\
+\midrule
+
+1,304,058
+& Logistic--HistGB
+& $+0.0243$ [$+0.0184$, $+0.0297$]
+& $-0.0073$ [$-0.0084$, $-0.0062$]
+& $-0.1087$ [$-0.1116$, $-0.1058$] \\
+
+& Logistic--MLP
+& $+0.0530$ [$+0.0460$, $+0.0600$]
+& $-0.0021$
+& $-0.0827$ \\
+
+& HistGB--MLP
+& $+0.0287$ [$+0.0213$, $+0.0360$]
+& $+0.0052$
+& $+0.0260$ \\
+\bottomrule
+\end{tabular}}
+
+\vspace{3pt}
+{\footnotesize \textit{Notes:} Positive differences favour Model A for ROC-AUC but favour Model B for Brier score and log loss, for which lower values are better. Bootstrap resampling is stratified by outcome and paired across models so that every comparison is evaluated on the same resampled test observations. The two-sided bootstrap $p$-value for each reported ROC-AUC comparison is 0.001.}
+\end{table}
+
+
+
+
+\noindent\textbf{Clustered test uncertainty (additional robustness audit).} To assess dependence within source geography and origination time, we separately resampled the 50 state/jurisdiction clusters and the nine test-origination-month blocks, with 1,500 resamples for each unit, keeping the trained models, calibrator, and thresholds fixed. State-clustered percentile 95\% intervals for the full-training test AUC differences were [0.016788, 0.031395] for logistic minus HistGB (observed 0.024294) and [0.020171, 0.039099] for HistGB minus MLP (observed 0.028740). For recalibrated HistGB, the Brier interval was [0.116103, 0.128728] around 0.123161, and the observed-minus-predicted mean calibration-gap interval was [0.049784, 0.066836] around 0.058236. At the 10:1 threshold the state-clustered FNR interval was [0.361435, 0.475184] around 0.413610 and the flag-rate interval was [0.325657, 0.419153] around 0.375307. Month-block resampling yielded a wider Brier interval [0.090388, 0.144676] and calibration-gap interval [0.015805, 0.086498]. Because there are only nine origination months, these latter intervals are exploratory. Neither procedure is joint two-way clustering, end-to-end re-fitting, correction for outcome selection, nor a familywise or false-discovery-rate adjustment. The CIs are therefore conditional uncertainty diagnostics, not proof of stability under model redevelopment.
+
+The full displayed statistics and both resampling intervals are summarised in Supplementary Table~\ref{tab:supp_clustered}.
+
+\noindent\textbf{Multiplicity and dependence interpretation.} The paired loan-level and separately clustered intervals were computed for several model, calibration and threshold outcomes, while subgroup and slice contrasts were also examined. The intervals have not been adjusted for a family of hypotheses, and neither Holm/Bonferroni nor false-discovery-rate adjusted significance claims are reported. Thus the directional differences in the tested ROC-AUC contrasts are descriptive evidence conditional on the fixed models and selected cohort, not an error-rate-controlled declaration that every governance or subgroup hypothesis is confirmed. State clustering addresses one source of dependence in the test predictions; nine-month-block intervals address another, but neither alone estimates joint state-by-month dependence. A confirmatory replication would predeclare a primary outcome and comparison family, then specify an appropriate dependence structure and multiplicity procedure before examining a fresh test window.
+
+\subsection{Validation-only recalibration}
+
+\label{sec:recalibration}
+
+The validation-selected full-training HistGB model materially under-predicts risk on its raw probability scale. Table~\ref{tab:recalibration} therefore reports calibration diagnostics before and after logistic recalibration fitted exclusively on the outcome-mature validation cohort and subsequently applied unchanged to the test cohort.
+
+\begin{table}[!ht]
+\centering
+\caption{Calibration diagnostics before and after validation-only logistic recalibration of the selected HistGB estimator.}
+\label{tab:recalibration}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrrrrrr}
+\toprule
+Cohort & Probability scale & Mean prediction & ROC-AUC & Brier & Log loss & ECE & Cal. intercept & Cal. slope \\
+\midrule
+Validation & Raw
+& 0.0320 & 0.6966 & 0.0933 & 0.3559 & 0.0692 & 1.4450 & 1.0570 \\
+Validation & Recalibrated
+& 0.1012 & 0.6966 & 0.0865 & 0.3048 & 0.0029 & 0.0002 & 1.0000 \\
+\midrule
+Test & Raw
+& 0.0277 & 0.6750 & 0.1367 & 0.5292 & 0.1188 & 1.5813 & 0.9223 \\
+Test & Recalibrated
+& 0.0882 & 0.6750 & 0.1232 & 0.4123 & 0.0583 & 0.3194 & 0.8722 \\
+\bottomrule
+\end{tabular}}
+
+\vspace{3pt}
+{\footnotesize \textit{Notes:} The logistic recalibration parameters are estimated on validation data only ($a=1.4450$, $b=1.0570$) and applied unchanged to test predictions. Observed event rates are 0.1012 in validation and 0.1464 in test. ECE uses ten bins. A calibration intercept of 0 and slope of 1 indicate ideal logistic calibration.}
+\end{table}
+
+Recalibration substantially improves probability quality without altering ranking. On validation data, ECE decreases from 0.0692 to 0.0029, Brier score from 0.0933 to 0.0865, and log loss from 0.3559 to 0.3048, while ROC-AUC remains 0.6966. On the out-of-time test cohort, ECE decreases from 0.1188 to 0.0583, Brier score from 0.1367 to 0.1232, and log loss from 0.5292 to 0.4123, with ROC-AUC unchanged at 0.6750. Recalibration improves but does not eliminate temporal miscalibration. The recalibrated mean test prediction is 0.0882 compared with an observed mature-cohort event rate of 0.1464, and the test calibration intercept and slope remain 0.3194 and 0.8722, respectively. Accordingly, validation-only recalibration materially improves the probability scale but does not establish that the model is fully calibrated under temporal shift.
+
+In simple terms, the model predicts an average test risk of 8.82\%, while the recorded adverse-outcome rate is 14.64\%. The gap is 5.82 percentage points, and the mean prediction remains about 40\% below the recorded rate. Recalibration learned from validation data did not fully carry over to the later selected test cohort. Better Brier and ECE values should therefore not be taken to mean that the remaining underestimation is harmless.
+
+\noindent\textbf{Reliability by predicted-risk band.} Reusing the existing ten equal-width probability-bin outputs, the dominant recalibrated test bands exhibit underprediction at several risk levels (Table~\ref{tab:r2_reliability_bins}). For the 10--20\% risk bin, 12,649 loans have mean predicted adverse risk 13.51\% against a recorded adverse rate 22.06\%, a gap of 8.54 percentage points. The comparable validation-bin figures are 13.81\% predicted versus 13.54\% observed. Bins above 40\% contain only 27 test loans in total and cannot support stable high-risk tail claims. These are equal-width risk bands; quantile-bin or subgroup-specific calibration with independent uncertainty would be a useful additional validation, not an analysis established by the present tables.
+
+\begin{table}[!ht]
+\centering
+\caption{Existing ten-equal-width-bin reliability diagnostics for the recalibrated HistGB score, selected test cohort.}
+\label{tab:r2_reliability_bins}
+\begin{tabular}{lrrrr}
+\toprule
+Predicted-risk band & Loans & Mean prediction & Observed adverse rate & Observed minus predicted \\
+\midrule
+$[0,0.1)$ & 26,759 & 0.05564 & 0.10027 & +0.04463 \\
+$[0.1,0.2)$ & 12,649 & 0.13515 & 0.22057 & +0.08542 \\
+$[0.2,0.3)$ & 1,511 & 0.23337 & 0.30973 & +0.07636 \\
+$[0.3,0.4)$ & 199 & 0.33041 & 0.36181 & +0.03140 \\
+$[0.4,0.5)$ & 24 & 0.43529 & 0.50000 & +0.06471 \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}
+{\footnotesize \textit{Notes:} Three additional predictions lie above 0.5 and occupy bins containing only one or two records; they are omitted here for legibility but retained in the original ten-bin ECE. The first three bins account for 40,919 of 41,145 test records (99.45\%). Source: original \texttt{cell29\_test\_reliability\_after.csv}.}
+\end{table}
+
+
+Figure~\ref{fig:recalibration_reliability} visualises residual underprediction across the five displayed predicted-risk bands after validation-only recalibration.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[
+        width=0.85\textwidth
+    ]{pics/Figure_05_Recalibrated_Test_Reliability.pdf}
+
+    \caption{
+    \textbf{Reliability of validation-recalibrated HistGB
+    probabilities on the outcome-mature test cohort.}
+    The diagram compares mean predicted adverse-outcome
+    probability with the observed adverse-outcome proportion
+    across five equal-width predicted-risk intervals.
+    The dashed diagonal represents perfect calibration,
+    where predicted and observed risks are equal.
+    In the 0--10\% predicted-risk band
+    ($n=26{,}759$), mean predicted risk is 5.56\%,
+    compared with an observed adverse-outcome rate of 10.03\%.
+    In the 10--20\% band ($n=12{,}649$),
+    predicted and observed rates are 13.51\% and 22.06\%.
+    The corresponding predicted and observed rates are
+    23.34\% and 30.97\% in the 20--30\% band
+    ($n=1{,}511$), 33.04\% and 36.18\%
+    in the 30--40\% band ($n=199$), and
+    43.53\% and 50.00\% in the 40--50\%
+    band ($n=24$).
+    The five displayed bands contain 41,142 observations;
+    three additional loans with predicted probabilities
+    of at least 0.50 are omitted from the plotted series
+    because of extremely sparse support.
+    Across the complete selected test cohort
+    ($n=41{,}145$), mean recalibrated predicted risk
+    is 8.82\%, whereas the observed adverse-outcome
+    rate is 14.64\%, indicating residual underprediction
+    of approximately 5.82 percentage points.
+    Recalibration reduces test Expected Calibration Error
+    from 0.1188 to 0.0583 and Brier score from
+    0.1367 to 0.1232, but does not eliminate temporal
+    miscalibration. The estimates are conditional on the
+    outcome-selected test cohort and should not be
+    interpreted as calibration for all loan originations.
+    }
+    \label{fig:recalibration_reliability}
+\end{figure}
+
+\noindent\textbf{Constant-risk benchmark.} A constant-risk prediction equal to the relevant training-sample adverse rate is a simple baseline that requires no borrower features. In the fixed selected test cohort its Brier score for the full training sample is 0.125047. The full-training raw HistGB Brier score is 0.136718, worse than this baseline (Brier skill score $-9.33\%$), while recalibrated HistGB has Brier score 0.123161, only slightly better (skill score $+1.51\%$). Full-training logistic regression and MLP also fall behind the constant-risk benchmark on test Brier score. In contrast, the 180,000-loan MLP has Brier 0.116114 and positive skill $+7.16\%$ against its corresponding training-prevalence baseline. These are comparisons within the outcome-selected test set, not proof of usefulness for all borrowers. A fitted industry scorecard or calibrated incumbent lender model was not available for a separate industrial benchmark. Table~\ref{tab:r2_brier_baselines} adds the verified simple comparison without replacing the existing performance tables.
+
+\begin{table}[!ht]
+\centering
+\caption{Brier skill relative to a constant training-prevalence forecast on the 41,145-loan selected test cohort. Positive skill means improvement over the corresponding baseline.}
+\label{tab:r2_brier_baselines}
+\begin{tabular}{lrrr}
+\toprule
+Full-training specification & Model Brier & Constant Brier & Brier skill \\
+\midrule
+Logistic SGD & 0.129401 & 0.125047 & $-3.48\%$ \\
+HistGB (raw) & 0.136718 & 0.125047 & $-9.33\%$ \\
+MLP & 0.131485 & 0.125047 & $-5.15\%$ \\
+HistGB (recalibrated) & 0.123161 & 0.125047 & $+1.51\%$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Threshold selection after recalibration}
+\label{sec:thresholds}
+
+Threshold optimisation is repeated after validation-only probability recalibration. For each false-negative to false-positive cost ratio, the cost-minimising threshold is selected using the recalibrated validation probabilities and is then applied unchanged to the recalibrated test probabilities. Table~\ref{tab:cost_threshold} reports the resulting operating characteristics.
+
+\begin{table}[!ht]
+\centering
+\caption{Cost-sensitive threshold selection after validation-only recalibration. Thresholds are selected on recalibrated validation probabilities and applied unchanged to the outcome-mature test cohort.}
+\label{tab:cost_threshold}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lrrrrrrrr}
+\toprule
+FN:FP & Threshold & Validation FNR & Validation review rate & Test FNR & Test review rate & Test precision & Test cost & Net benefit \\
+\midrule
+5:1  & 0.1730 & 0.7008 & 0.1267 & 0.8435 & 0.0775 & 0.2959 & 27,654 & 2,471 \\
+10:1 & 0.0962 & 0.2699 & 0.4756 & 0.4136 & 0.3753 & 0.2288 & 36,829 & 23,421 \\
+20:1 & 0.0327 & 0.0278 & 0.8664 & 0.0490 & 0.8506 & 0.1637 & 35,166 & 85,334 \\
+\bottomrule
+\end{tabular}}
+
+\vspace{3pt}
+{\footnotesize \textit{Notes:} Costs are analytical cost units on the 41,145-loan outcome-mature test cohort under $C=c_{\mathrm{FN}}\mathrm{FN}+c_{\mathrm{FP}}\mathrm{FP}$ with $c_{\mathrm{FP}}=1$. The corresponding no-review costs are 30,125, 60,250, and 120,500 cost units for the 5:1, 10:1, and 20:1 scenarios. Net benefit is no-review cost minus test cost. These ratios are illustrative policy scenarios rather than measured institutional costs.}
+\end{table}
+
+Recalibration materially changes the probability scale on which the operating thresholds are selected, while the assumed FN:FP cost ratio determines the resulting review intensity. Under the 5:1 scenario, the validation-selected threshold is 0.1730; when applied to the test cohort, it flags 7.75\% of loans and misses 84.35\% of realised adverse outcomes. Under the 10:1 scenario, the threshold is 0.0962, with a test review rate of 37.53\%, FNR of 41.36\%, and precision of 0.2288. Under the 20:1 scenario, the threshold falls to 0.0327, reducing test FNR to 4.90\% but increasing the review rate to 85.06\%. The large variation in review rates therefore reflects the different cost-sensitive operating thresholds rather than variation in any loan-renewal process. These operating points should not be interpreted as deployment recommendations. Each minimises the stated simplified cost function under a different assumed cost ratio. The 20:1 scenario produces the largest net benefit under that specification but would flag approximately 85\% of the test cohort, illustrating that economic optimisation without an explicit capacity constraint can imply an operationally demanding review policy. Institutional threshold approval would additionally require measured costs, review capacity, pricing effects, consumer consequences, and other omitted operational considerations.
+
+Figure~\ref{fig:threshold_review_tradeoff} depicts the trade-off between flagged-loan proportions and missed adverse outcomes across the three illustrative operating points.
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[
+        width=0.85\textwidth
+    ]{pics/Figure_06_Flag_Rate_vs_False_Negatives.pdf}
+
+    \caption{
+    \textbf{Trade-off between analytical review burden
+    and false-negative rate under illustrative
+    misclassification-cost assumptions.}
+    The figure shows the proportion of loans flagged
+    for analytical review against the false-negative
+    rate (FNR) for the validation-recalibrated HistGB
+    model under false-negative to false-positive
+    cost ratios of 5:1, 10:1, and 20:1.
+    Thresholds were selected by minimising the
+    specified classification-loss function on the
+    recalibrated validation cohort and were subsequently
+    applied unchanged to the selected chronological
+    test cohort ($n=41{,}145$).
+    Under the 5:1 scenario, the selected threshold
+    is 0.1730, producing a test flag rate of
+    7.75\%, FNR of 84.35\%, and classification
+    cost of 27,654 units.
+    Under the 10:1 scenario, the threshold decreases
+    to 0.0962, increasing the flag rate to 37.53\%
+    while reducing FNR to 41.36\%, with a
+    classification cost of 36,829 units.
+    Under the 20:1 scenario, the threshold decreases
+    further to 0.0327, producing a flag rate of
+    85.06\% and FNR of 4.90\%, with a
+    classification cost of 35,166 units.
+    The connecting line is a visual guide between
+    three evaluated operating points, not an
+    estimated continuous policy frontier.
+    These results demonstrate the sensitivity of
+    threshold-conditioned outcomes to assumed
+    cost ratios and flagging intensity.
+    The cost ratios are illustrative rather than
+    empirically estimated institutional costs.
+    Flagged loans represent hypothetical analytical
+    review candidates, not observed human-review
+    interventions, actual review expenditure,
+    or demonstrated improvements in lending outcomes.
+    }
+    \label{fig:threshold_review_tradeoff}
+\end{figure}
+
+We also compared each model-based policy with two simple classification rules: flag no loans and flag all loans. Flagging all loans gives a test cost of 35,120 units under each ratio. The model-based cost is lower at 5:1 (27,654), but higher at 10:1 (36,829) and 20:1 (35,166). These are simple classification-cost comparisons, not estimates of what it would actually cost to send every case for human review.
+
+
+\noindent\textbf{Trivial decision benchmarks.} The published ``net benefit'' uses the all-negative classification rule (flag no loans) as its comparator, not an economically observed human-review policy. The additional verified comparison in Table~\ref{tab:r2_policy_benchmarks} shows that a rule flagging every loan costs 35,120 units for all three ratios. It is beaten by the model-based policy at 5:1, but not at 10:1 or 20:1. The last difference is just 46 units and has no uncertainty estimate. An ideal classifier with knowledge of each recorded outcome would have zero misclassification loss by definition, but is an unattainable descriptive oracle, not a lender benchmark. A full decision-curve or utility analysis would require credible treatment actions, intervention effects, review costs and potentially outcome data on rejected applicants; these are unavailable here.
+
+\begin{table}[!ht]
+\centering
+\caption{Test-set classification-cost comparison with simple decision rules. Units are illustrative; flag-all is not a measured human-review operation.}
+\label{tab:r2_policy_benchmarks}
+\begin{tabular}{lrrrr}
+\toprule
+FN:FP & Model policy & Flag none & Flag all & Perfect-label oracle \\
+\midrule
+5:1 & 27,654 & 30,125 & 35,120 & 0 \\
+10:1 & 36,829 & 60,250 & 35,120 & 0 \\
+20:1 & 35,166 & 120,500 & 35,120 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Sample-qualified unemployment and slice diagnostics}
+\label{sec:subgroup}
+
+The high-state-unemployment subgroup contains 641 loans and 74 adverse outcomes, compared with 40,504 loans and 5,951 adverse outcomes in the other-state group. On the recalibrated probability scale, ROC-AUC is 0.6361 (95\% bootstrap CI [0.5733, 0.6973]) in the high-unemployment subgroup and 0.6752 (95\% CI [0.6688, 0.6824]) in the other-state group. The corresponding mean predicted probabilities are 0.0776 and 0.0884, compared with observed adverse-outcome rates of 0.1154 and 0.1469. The substantially smaller high-unemployment sample produces wider uncertainty and does not support a causal or population-wide claim of regime deterioration. At the validation-selected recalibrated 10:1 threshold of 0.0962, the high-unemployment subgroup has an FNR of 0.5946 (95\% Wilson CI [0.4808, 0.6991]), a review rate of 0.2699, and precision of 0.1734. The corresponding other-state values are an FNR of 0.4114 (95\% CI [0.3989, 0.4239]), review rate of 0.3770, and precision of 0.2294. The higher high-unemployment FNR is therefore treated as a monitoring and escalation signal rather than as evidence of a causal macroeconomic effect. Table~\ref{tab:supported_slices} reports the four grade-by-term cells that satisfy the pre-specified minimum-support requirement in both unemployment groups.
+
+\begin{table}[!ht]
+\centering
+\caption{Sample-qualified grade-by-term diagnostics at the recalibrated 10:1 threshold. Cells are reported only when both unemployment groups contain at least 10 adverse outcomes and at least 10 non-events.}
+\label{tab:supported_slices}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{llrrrrr}
+\toprule
+Slice & Group & $n$ & Adverse outcomes & FNR & 95\% Wilson CI & Review rate \\
+\midrule
+C, 36m & Other-state & 6,411 & 1,182 & 0.3206 & [0.2947, 0.3478] & 0.5402 \\
+       & High-unemployment & 110 & 21 & 0.4762 & [0.2834, 0.6763] & 0.4091 \\
+C, 60m & Other-state & 3,390 & 670 & 0.1851 & [0.1575, 0.2162] & 0.6985 \\
+       & High-unemployment & 58 & 11 & 0.3636 & [0.1517, 0.6462] & 0.5517 \\
+D, 36m & Other-state & 5,118 & 1,204 & 0.4294 & [0.4017, 0.4575] & 0.4582 \\
+       & High-unemployment & 85 & 12 & 0.7500 & [0.4677, 0.9111] & 0.2353 \\
+D, 60m & Other-state & 2,947 & 764 & 0.2291 & [0.2007, 0.2602] & 0.6800 \\
+       & High-unemployment & 56 & 11 & 0.6364 & [0.3538, 0.8483] & 0.4286 \\
+\bottomrule
+\end{tabular}}
+
+\vspace{3pt}
+{\footnotesize \textit{Notes:} High unemployment denotes state-level unemployment rate $\geq4.9\%$. FNR is evaluated at the validation-selected recalibrated 10:1 threshold of 0.0962. Intervals are Wilson 95\% confidence intervals.}
+\end{table}
+
+The 4.9\% high-state-unemployment cutoff was the rule implemented in the supplied analysis; there is no documented economic or regulatory basis for claiming it is a uniquely appropriate stress threshold. Because the test-period state unemployment rate is largely constant within state, geographic clustering is a material concern. The unadjusted 95\% Wilson intervals for the two broad FNR groups do not overlap; nevertheless, they are loan-level intervals, not a state-clustered test of a difference. A subsequent state-clustered bootstrap was completed, but multiplicity correction, covariate adjustment and matched-state comparisons were not. The high-unemployment subgroup is concentrated in only four jurisdictions, so its cluster-resampling interval cannot be taken as reliable evidence of a general unemployment effect; grade, term, state composition, vintage and other confounders remain possible explanations. Analyses across the four supported grade-by-term cells are exploratory and should not be converted into a legal fairness determination.
+
+\noindent\textbf{Subgroup cluster support and effect uncertainty.} The 641 high-unemployment test loans are distributed across only four jurisdictions: West Virginia (253 loans, 23 adverse outcomes), New Mexico (218, 30), Washington, DC (85, 10), and Alaska (85, 11). All nine test-origination months are represented, but the effective number of contributing jurisdictions (inverse Herfindahl concentration) is only approximately 3.26 by loan count and 3.32 by adverse count. The observed high-minus-other FNR difference at the 10:1 threshold is 0.183235. State-clustered bootstrap produced a percentile 95\% interval [0.105707, 0.299410] (1,481 valid of 1,500 replicates); separate nine-month-block resampling gave [0.069721, 0.275649]. While both exploratory intervals exclude zero, neither establishes a well-identified unemployment effect: the high subgroup is defined by an unmotivated 4.9\% cutoff, represented in four jurisdictions only, and is compositionally confounded. State-cluster inference for a subgroup with effectively only about three independent geographic units is particularly fragile. These intervals are not adjusted for multiple comparisons, and no causal or protected-class fairness conclusion follows. The subgroup should be reported as a sparse, location-specific audit signal rather than generalisable evidence of stress-regime deterioration.
+
+Supplementary Table~\ref{tab:supp_geographic} records the jurisdiction-level counts.
+
+
+\noindent\textbf{What the geographic contrast cannot isolate.} Because the high-unemployment indicator is almost constant within jurisdiction over this nine-month test window, state identity and the exposure definition are closely aligned. There are only four high-exposure jurisdictions, and their grade and term composition may differ from that of the remaining jurisdictions. A state-adjusted association is not separately identifiable from a nearly state-constant exposure without additional temporal or geographic variation. The available aggregate contrasts therefore cannot distinguish unemployment from regional composition, historical selection, grade, origination month or other confounders. The four supported grade-by-term cells check minimum event support, not exchangeability; their overlapping and wide high-group intervals should be used for targeted investigation rather than confirmatory fairness or causal tests. A credible follow-up would need a prespecified exposure threshold, multiple independent high-exposure states or repeated within-state variation, and appropriate adjustment, ideally including protected-class assessment where legally and ethically suitable.
+
+All four supported high-unemployment cells have higher FNR point estimates than their corresponding other-state cells, but the high-unemployment event counts remain small and the confidence intervals are broad. These results therefore support sample-aware monitoring and investigation rather than a definitive claim of subgroup failure. Cells failing the pre-specified support rule are suppressed from inferential interpretation. Table~\ref{tab:competing_risk} summarises the cumulative-incidence estimates for charge-off and full repayment across the supported follow-up horizons.
+
+
+
+\begin{table}[!ht]
+\centering
+\caption{Competing-risk cumulative incidence estimates for charge-off and full repayment. Unresolved loans remain right-censored rather than being classified as non-defaults.}
+\label{tab:competing_risk}
+\begin{tabular}{lrr}
+\toprule
+Horizon (months) & Charge-off cumulative incidence & Fully-paid cumulative incidence \\
+\midrule
+6  & 0.0161 & 0.0650 \\
+12 & 0.0413 & 0.1438 \\
+18 & 0.0750 & 0.2370 \\
+24 & 0.1061 & 0.3329 \\
+36 & 0.1419 & 0.6748 \\
+\bottomrule
+\end{tabular}
+
+\vspace{3pt}
+{\footnotesize \textit{Notes:} Competing-risk cohort $n=2{,}700{,}690$. Observed events comprise 175,144 charge-offs and 765,339 full repayments; 1,760,207 loans are right-censored. A further 2,740 charged-off records are excluded because usable event timing is unavailable. At-risk support is 1,092,889 loans at 12 months, 522,416 at 24 months, and 221,142 at 36 months.}
+\end{table}
+
+
+
+\subsection{Policy-materiality synthesis and proposition adjudication}
+\label{sec:adjudication}
+
+Table~\ref{tab:policy_synthesis_mature} consolidates the decision-relevant findings. The revised evidence shows that outcome definition, training-sample size, calibration, and threshold policy affect different components of model governance. Model-family differences are statistically detectable, but their ordering is not stable across training sizes; they should therefore be interpreted through paired inference and sensitivity analysis rather than through a single maximum ROC-AUC spread.
+
+\begin{table}[!ht]
+\centering
+\caption{Policy-materiality synthesis from the outcome-mature analysis.}
+\label{tab:policy_synthesis_mature}
+\resizebox{\textwidth}{!}{ 
+\begin{tabular}{L{3.0cm}L{4.6cm}L{3.4cm}L{5.2cm}}
+\toprule
+Governance question & Evidence & Materiality & Control implication \\
+\midrule
+Are outcomes ready for validation? & Mature test $n=41{,}145$ of 401,169; adverse-outcome prevalence 0.1464 versus 0.0296 among all recorded statuses; competing-risk analysis retains unresolved observations as censored & 10.3\% test maturity and substantial censoring materially change the evaluation population & Require documented outcome horizons and censoring diagnostics; use time-to-event methods where unresolved outcomes are material. \\
+Does added capacity justify itself? & At 180k training observations, test ROC-AUC ranks MLP (0.7189) $>$ HistGB (0.6977) $>$ logistic (0.6461); at full training it ranks logistic (0.6993) $>$ HistGB (0.6750) $>$ MLP (0.6463) & Paired bootstrap intervals exclude zero for the model contrasts, but the ranking reverses with training size & Require training-size sensitivity and paired inference before attributing governance value to model complexity. \\
+Are probabilities decision-ready? & Validation-only recalibration reduces test ECE from 0.1188 to 0.0583 and Brier score from 0.1367 to 0.1232; recalibrated mean prediction is 0.0882 versus observed rate 0.1464 & Probability quality improves materially but residual temporal miscalibration remains & Recalibrate using an independent validation window and continue monitoring calibration validity out of time. \\
+Can unemployment-subgroup differences be estimated reliably? & High-state-unemployment subgroup $n=641$ with 74 adverse outcomes; FNR 0.5946 [0.4808, 0.6991] versus 0.4114 [0.3989, 0.4239] in the other-state group at the recalibrated 10:1 threshold & The point estimate differs, but uncertainty is substantial in the smaller subgroup & Treat the result as a monitoring and escalation signal rather than evidence of a causal macroeconomic effect. \\
+Who determines the operating point? & After validation-only recalibration, FN:FP ratios 5:1, 10:1, and 20:1 select thresholds 0.1730, 0.0962, and 0.0327 & Test review rates are 7.75\%, 37.53\%, and 85.06\%, while FNRs are 84.35\%, 41.36\%, and 4.90\% & Approve the cost assumptions and capacity constraint before deriving and deploying the threshold. \\
+Can segmented monitoring support a directional claim? & Only C36, C60, D36, and D60 satisfy the requirement of at least 10 adverse outcomes and 10 non-events in both unemployment groups; high-unemployment FNR point estimates are higher in all four cells but intervals are wide & Cell-level evidence is suggestive rather than confirmatory & Apply sample-aware monitoring and escalation while suppressing unsupported cells from directional interpretation. \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\textbf{P1 is illustrated by the existing comparisons, but the proposed control has not been independently tested.} The revised analysis does not establish equivalence among model families. Instead, paired inference identifies statistically distinguishable performance differences whose ordering depends materially on training-sample size. At 180,000 training observations, the MLP has the highest test ROC-AUC (0.7189), whereas under full-cohort training logistic regression has the highest test ROC-AUC (0.6993). For the full-training comparison, logistic regression exceeds HistGB by 0.0243 in ROC-AUC (95\% CI [0.0184, 0.0297]) and the MLP by 0.0530 (95\% CI [0.0460, 0.0600]). The evidence therefore supports the narrower governance proposition that increased model complexity should not be presumed to provide a stable performance advantage without training-size sensitivity analysis and paired out-of-time inference.
+
+\textbf{P2 is illustrated as a governance proposition, with an important qualification concerning selection.} Only 41,145 of 401,169 test-period loans (10.3\%) satisfy the outcome-maturity rule, and adverse-outcome prevalence is 14.64\% in that conditional cohort compared with 2.96\% among all recorded test-period statuses. The competing-risk analysis independently shows that unresolved observations constitute a substantial component of the outcome process and should not be recoded as observed non-defaults. Outcome maturity is therefore material to validation, but restriction to mature loans changes the estimand rather than eliminating selection. Governance should consequently document maturity, censoring, competing events, and the population to which each performance estimate applies.
+
+\textbf{P3 is illustrated by the recalibrated decision analysis, not by a trial of governance actions.} Changing the assumed FN:FP cost ratio from 5:1 to 20:1 shifts the validation-selected recalibrated threshold from 0.1730 to 0.0327. Correspondingly, the test review rate increases from 7.75\% to 85.06\%, while the FNR decreases from 84.35\% to 4.90\%. The intermediate 10:1 scenario selects a threshold of 0.0962, a review rate of 37.53\%, and an FNR of 41.36\%. The evidence therefore shows that cost assumptions materially determine the operating policy, while the resulting thresholds remain analytical scenarios rather than deployment recommendations.
+
+\textbf{P4 is an illustrative monitoring proposition, not a tested intervention.} At the recalibrated 10:1 threshold of 0.0962, the high-state-unemployment subgroup has an FNR of 0.5946 (95\% CI [0.4808, 0.6991]) compared with 0.4114 (95\% CI [0.3989, 0.4239]) in the other-state subgroup. Only four grade-by-term cells satisfy the strengthened minimum-support requirement, and their high-unemployment estimates remain imprecise because they contain only 11--21 adverse outcomes. The evidence therefore supports sample-aware subgroup monitoring and escalation, but does not establish systematic subgroup failure or a causal unemployment effect.
+
+Table~\ref{tab:reanalysis_manifest} records the analysis provenance. Three requirements follow for the control framework in Section~\ref{sec:policy}: outcome maturity is a release condition; minimum samples attach to every subgroup and slice limit; and the approved object is the cost-and-capacity policy from which a threshold is derived.
+
+\begin{table}[!ht]
+\centering
+\caption{Provenance of the outcome-mature analysis.}
+\label{tab:reanalysis_manifest}
+\begin{tabular}{L{4.2cm}L{9.8cm}}
+\toprule
+Element & Specification \\
+\midrule
+Source & \texttt{P2P\_Macro\_Data.dta}; 2,703,430 raw rows \\
+Chronological periods & Training: 2012-08 to 2018-06; validation: 2018-07 to 2019-03; test: 2019-04 to 2019-12 \\
+Classification outcome maturity & Terminal status (Fully Paid, Charged Off, or Default), or elapsed calendar time since origination at least equal to the contractual term \\ Competing-risk outcome & Charge-off as the adverse event, full repayment as a competing event, and unresolved loans as right-censored \\
+Unemployment subgroup & State-level unemployment rate $\geq 4.9\%$; 641 high-unemployment-state test loans versus 40,504 other-state loans; descriptive cross-sectional diagnostic rather than a national temporal stress regime \\
+Training-size analysis & Nested mature training samples of 180,000, 360,000, 540,000, and the full 1,304,058-loan cohort; deterministic model-development seed 42 \\
+Model families & SGD logistic regression, histogram gradient boosting, multilayer perceptron \\
+Selection rule & Highest validation ROC-AUC; selected model HistGB \\
+Threshold rule & Cost minimisation on validation-only recalibrated probabilities at FN:FP ratios of 5:1, 10:1, and 20:1; selected thresholds applied unchanged to recalibrated test probabilities \\
+Slice support rule & Grade $\times$ term cells retained only when both unemployment groups contain at least 10 adverse outcomes and at least 10 non-events; four cells satisfy the rule: C36, C60, D36, and D60 \\
+Interval estimates & Paired stratified bootstrap for model-performance differences; bootstrap intervals for subgroup ROC-AUC; Wilson 95\% intervals for subgroup and slice FNR estimates \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Policy and Governance Framework}
+\label{sec:policy}
+
+
+
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\textwidth]{pics/evidence_to_control_framework_infographic_v3_4K.jpeg}
+    \caption{Evidence-to-control framework for governance of AI credit decisions under temporal, distributional, and subgroup variation. Model outputs are evaluated through calibration, threshold-dependent decision safety, distribution shift, and sample-qualified subgroup performance, with predefined breaches linked to accountable governance actions.}
+    \label{fig:governance}
+\end{figure}
+
+
+
+Figure~\ref{fig:governance} translates the empirical evidence into an evidence-to-action control process. Its distinguishing feature is not the diagnostic layer, which is conventional, but the requirement that each diagnostic terminate in a pre-specified limit and an owned action rather than in a report. Figure~\ref{fig:governance} defines the evidence-to-action sequence, whereas Figure~\ref{fig:institutional_architecture} defines the organisational allocation and accountability of those controls; the two are complementary rather than alternative views.
+
+The decision framework can be written compactly as
+\[
+A_t=g(O_t,C_t,D_t,S_t,W_t),
+\]
+where each component is a monitored quantity or institution-approved composite evaluated at monitoring time $t$. $O_t$ denotes outcome readiness, including maturity or follow-up adequacy and minimum event support, with larger values indicating greater readiness. $C_t$ denotes calibration error, summarising measures such as ECE and deviations of the calibration intercept and slope from their ideal values. $D_t$ denotes threshold-conditioned decision loss at the approved operating point, measured using quantities such as FNR, precision, review burden, or an approved cost function. $S_t$ denotes a pre-specified distribution-shift statistic, and $W_t$ denotes the worst supported subgroup or slice-level decision loss. For $C_t$, $D_t$, $S_t$, and $W_t$, larger values represent greater risk.
+
+The available governance actions are
+\[
+A_t\in\{\text{continue},\text{recalibrate},\text{human review},
+\text{restrict automation},\text{suspend}\}.
+\]
+A generic breach indicator is therefore
+\[
+B_t=\mathbb{I}
+\left[
+O_t<O^{*}
+\ \lor\ 
+C_t>C^{*}
+\ \lor\
+D_t>D^{*}
+\ \lor\
+S_t>S^{*}
+\ \lor\
+W_t>W^{*}
+\right],
+\]
+where segmented quantities are evaluated only when their pre-specified minimum sample and event requirements are satisfied. The starred values are institution-approved tolerances fixed ex ante rather than universal regulatory thresholds. Neither $g$ nor the starred tolerances are estimated by the present empirical analysis; $g$ represents the institution's documented mapping from diagnostic evidence, breach severity, and accountable authority to a governance action. The evidence supports a layered control framework in which monitoring results are tied to authority and response. The numerical values below are not proposed as universal regulatory limits. They show how a lender should convert empirical validation into institution-specific limits before deployment.
+
+\noindent\textbf{Illustration using already reported test numbers, not a governance trial.} To make the proposed indicator operationally understandable, consider illustrative tolerances selected \emph{after} examining the results: outcome-readiness share at least 20\%, absolute mean calibration gap at most 2 percentage points, and model classification cost no greater than the cheaper of flag-none and flag-all. The current test results would breach the first two examples (10.26\% mature and a 5.82-point calibration gap). The model-based policy would pass the relative-cost test at 5:1, but breach it at 10:1 and 20:1 (by 1,709 and 46 cost units, respectively). These thresholds were not pre-registered, institution-approved or selected using a cost-benefit study; retrospective arithmetic does not establish that a governance intervention would have fired in the historical platform or improved decisions. Accordingly, $g(\cdot)$ remains an unestimated decision mapping, and the numerical illustration demonstrates computability of an alert, not efficacy of a deployed control. P1--P4 are interpretive design propositions rather than falsifiable treatment-effect hypotheses.
+
+\noindent\textbf{Additional reproducible retrospective alert exercise.} A separate, mechanically executed audit applies four further \emph{illustrative, post-hoc} limits: at least 50\% outcome-readiness share, an absolute mean calibration gap no greater than two percentage points, FNR no greater than 25\%, and a flag rate no greater than 40\%. These are a separate demonstration from the preceding 20\% example, not competing approved policies. In the selected validation cohort (27,374 of 370,994), the 10:1 policy has FNR 26.99\% and flags 47.56\%, firing illustrative maturity, FNR and capacity alerts; the mean calibration gap there is near zero by construction after validation-fitted recalibration. On the test cohort, maturity is 10.26\% and the mean observed-minus-predicted gap is 5.82 percentage points, so both alerts fire at all three cost ratios. At 5:1, test FNR 84.35\% exceeds the illustrative 25\% limit while the 7.75\% flag rate does not exceed the capacity limit; the classification-cost proxy of 27,654 is lower than the best constant rule's 30,125. At 10:1, test FNR 41.36\% breaches the FNR limit while the flag rate 37.53\% remains under 40\%, and cost 36,829 exceeds the better trivial policy's 35,120. At 20:1, FNR 4.90\% passes the FNR example, but the flag rate 85.06\% breaches capacity and cost 35,166 exceeds the better trivial policy by 46 units. This demonstrates that operational alert logic can generate different signals at different thresholds; it does not demonstrate that an actual lender ran these checks, responded to them, or improved any consumer outcome. No tolerance is justified as a legal compliance threshold, and no observed intervention effect is estimated.
+
+
+
+\noindent\textbf{Operational decision trace and falsifiability.} Under the stated hypothetical 50\% maturity gate, the selected validation and test samples both fail eligibility for a claim about all recent originations. Under the hypothetical two-percentage-point mean-calibration limit, the test score would require investigation or withdrawal from probability-dependent decision use; under the 25\% FNR limit, the 5:1 and 10:1 test scenarios would require threshold review; and the 20:1 scenario would exceed the illustrative 40\% flag-capacity limit. This is a retrospective \emph{if--then} trace from measured diagnostics to proposed review actions, not a record of an enacted review, prevented loss or improved customer outcome. For the framework to become empirically falsifiable in a future deployment, an institution would have to register tolerances, ownership and actions before testing, log every breach and intervention, and evaluate realised review throughput, overrides, subsequent loan outcomes and consumer harms against an agreed comparator. The present archive has no such intervention log or counterfactual, so efficacy is not established.
+
+Table~\ref{tab:r2_governance_alerts_main} summarises the test-window alerts produced by the illustrative 50\% maturity floor, two-percentage-point absolute calibration-gap ceiling, 25\% FNR ceiling and 40\% flag-rate ceiling. The fully tabulated validation and test exercise is retained in Supplementary Table~\ref{tab:supp_governance}. These are retrospective, post-hoc diagnostics, not institution-approved alert limits or an intervention trial.
+
+\begin{table}[!ht]
+\centering
+\caption{Illustrative retrospective governance alerts for the selected test cohort. All limits are post-hoc examples; costs are unobserved classification-loss proxies, not human-review expenditure.}
+\label{tab:r2_governance_alerts_main}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrL{6.0cm}}
+\toprule
+FN:FP & Test FNR & Flag share & Model loss & Best trivial loss & Triggered illustrative alerts \\
+\midrule
+5:1 & 0.8435 & 0.0775 & 27,654 & 30,125 & Maturity; calibration; FNR \\
+10:1 & 0.4136 & 0.3753 & 36,829 & 35,120 & Maturity; calibration; FNR; worse than best trivial rule \\
+20:1 & 0.0490 & 0.8506 & 35,166 & 35,120 & Maturity; calibration; flag capacity; worse than best trivial rule \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+{\footnotesize \textit{Notes:} The observed maturity share is 10.26\% and the recalibrated observed-minus-predicted mean risk gap is 5.82 percentage points for this selected test cohort. A flag means a retrospective score exceeds a threshold, not an actual human intervention. Comparison rules flag no loans or all loans; ``best trivial'' reports the less costly rule under each assumed cost ratio. No prospective effectiveness, economic utility or regulatory compliance is established.}
+\end{table}
+
+
+\begin{table}[!ht]
+\centering
+\caption{Evidence-based controls for AI credit decision systems.}
+\label{tab:controls}
+\resizebox{\textwidth}{!}{ 
+\begin{tabular}{L{2.5cm}L{3.6cm}L{3.6cm}L{3.5cm}L{3.2cm}}
+\toprule
+Control & Required evidence & Trigger design & Mandatory response & Accountable owner \\
+\midrule
+Outcome readiness & Outcome horizon; terminal-status rule; maturity share; follow-up distribution & Maturity or follow-up below the approved floor & Defer validation, use survival methods, or restrict the claim & Model owner and independent validation \\
+Model approval & Chronological holdout; simple benchmark; proper scores; complexity inventory & Pre-set minimum improvement and maximum out-of-time deterioration & Reject, simplify, or impose compensating controls & Model risk committee \\
+Calibration & Mean prediction versus outcome rate; proper scores; ECE; intercept/slope; reliability curve & Pre-set probability-quality tolerance on an outcome-mature sample & Recalibrate, constrain economic use, and revalidate & Model owner with independent validation \\
+Regime monitoring & Pre-defined scenario; minimum $n$ and adverse outcomes; interval estimates & Sample floor met and approved regime limit breached & Recalibrate, tighten review, reduce automation, or suspend affected use & First-line credit risk with independent validation \\
+Threshold governance & Cost matrix; TPR/FNR/precision curves; review capacity; consumer impact & Cost ratio, risk appetite, and capacity limit change & Re-optimise and re-approve; route eligible cases to review & Credit policy committee \\
+Worst-slice assurance & Minimum $n$ and defaults; TPR/FNR floors; intervals; proxy review & Sample floor met and a material slice breaches its limit & Root-cause analysis, remediation, and enhanced monitoring & Consumer outcomes and model risk \\
+Human oversight & Override rules; competence; reasons; turnaround times; override outcomes & Automation uncertainty, novel regime, or slice breach & Mandatory review with recorded reason and feedback control & Operations and compliance \\
+Lineage and reproducibility & Data snapshot; code/version hash; eligibility rules; calibration and threshold IDs & Unreconciled denominator or non-reproducible metric & Block release or supervisory submission & Model owner and independent validation \\
+Post-market review & Drift, calibration, complaints, approvals, arrears, and override outcomes & Scheduled review plus event-driven triggers & Corrective action, notification where required, and documented closure & Senior management and governing body \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\subsection{Pre-deployment approval}
+
+Approval should begin with the decision purpose and foreseeable harm, not the preferred algorithm. The model owner must specify the target population, outcome horizon, excluded uses, protected or vulnerable groups where lawfully measurable, and the loss function that governs the operating point. A simple benchmark remains the default challenger. Additional complexity is approved only when its incremental benefit is stable and material.
+Validation should reproduce every sample count and metric from raw eligibility rules. It should begin with the target horizon, outcome-maturity rule, maturity share, and follow-up distribution; only then should it assess chronological and scenario holdouts, calibration, threshold curves, and subgroup floors. Every segmented limit requires a pre-specified minimum number of loans and events. This aligns the paper's diagnostics with model-development, independent-validation, and lifecycle-risk expectations in the PRA, EBA, NIST, EU, and US frameworks \cite{ref39,ref40,ref44,ref45,ref47}. Table~\ref{tab:controls} pairs each item of evidence with a trigger, response, and accountable owner.
+
+\begin{figure}[!ht]
+\centering
+\resfig{1.0}{pics/institutional_control_architecture.jpeg}
+\caption{Institutional control architecture for AI-enabled credit decisions. The framework separates the origination-time information boundary, risk estimation, decision policy, portfolio and macroeconomic assurance, and institutional accountability. Cross-cutting lineage links data, model, calibration, threshold, and outcome evidence, emphasising governance of the complete decision system rather than predictive performance alone.}
+\label{fig:institutional_architecture}
+\end{figure}
+
+Figure~\ref{fig:institutional_architecture} complements the evidence-to-control process in Figure~\ref{fig:governance} by locating those controls within the institutional decision system. Risk estimation is separated from credit policy: the model produces an estimated probability, whereas the operating threshold, risk appetite, review capacity, and escalation rules remain policy choices. Portfolio and macroeconomic assurance then evaluates the resulting decision system across economic regimes and operational slices, while model ownership, independent validation, credit policy, compliance, and senior management retain distinct accountability.
+
+\subsection{Threshold approval and human review}
+
+The threshold determines which loans are flagged for analytical review based on predicted adverse-outcome risk; it should not be inherited from a generic probability value. Approval requires an explicit cost matrix, an assessment of consumer consequences, and a capacity analysis for additional review. The recalibrated empirical scenarios show why: test review demand is 7.75\%, 37.53\%, and 85.06\% under the 5:1, 10:1, and 20:1 FN:FP cost scenarios, respectively. Where a score is out of distribution, calibration limits are breached, or a sufficiently supported worst-slice limit fails, automation should be reduced, and a competent reviewer should be able to disregard, override, or reverse the output. The EU AI Act's human-oversight and lifecycle-monitoring provisions provide a legal-policy analogue for this control architecture \cite{ref40}. Human review is not automatically protective. Override rates, reasons, processing times, and subsequent outcomes must be monitored for automation bias and inconsistent treatment. The feedback generated by overrides must not enter future training data without controls for selective labels and policy-induced bias.
+
+\subsection{Consumer-outcome and supervisory reporting}
+
+A governing-body report should separate model metrics from customer outcomes. At minimum, it should show approval and pricing outcomes, subsequent arrears/defaults, complaints, manual-review results, and differences across relevant customer groups. It should disclose denominator changes and the action taken after each breach. This mirrors the FCA Consumer Duty's emphasis on monitoring whether groups receive different outcomes, identifying root causes, and taking appropriate action \cite{ref46}. For supervisory use, the report should contain: the model and data lineage; intended-use statement; latest independent validation; current calibration and threshold; performance against limits; open findings; remediation owners and dates; and a clear decision to continue, constrain, recalibrate, or suspend. Documentation becomes effective governance only when it records an accountable decision.
+
+
+
+
+
+
+
+
+
+
+\section{Discussion}
+
+\subsection{What the evidence changes}
+
+The first contribution is methodological but operationally decisive: outcome maturity changes the apparent prediction problem. Only 10.3\% of the chronological test partition satisfies the maturity rule, and adverse-outcome prevalence is 14.64\% in this conditional cohort compared with 2.96\% when all recorded test-period statuses are tabulated without requiring adequate follow-up. The competing-risk analysis further shows that unresolved observations form a substantial component of the outcome process. Credit-model validation should therefore identify the outcome horizon, maturity rule, censoring mechanism, competing events, and population to which each reported performance estimate applies.
+
+Second, the model-family ordering is not invariant to training-sample size. At 180,000 training observations the MLP has the highest test ROC-AUC, whereas under full-cohort training logistic regression ranks highest. Paired bootstrap comparisons show that these differences are statistically distinguishable, but their direction reverses as the training sample changes. The evidence therefore does not establish model equivalence or a universal advantage for a particular architecture. Model approval should include training-size sensitivity and paired out-of-time comparison rather than assigning governance value to complexity from a single training configuration.
+
+Third, validation-only logistic recalibration materially improves the selected HistGB model's probability quality without changing discrimination. Test ECE declines from 0.1188 to 0.0583, Brier score from 0.1367 to 0.1232, and log loss from 0.5292 to 0.4123, while ROC-AUC remains 0.6750. Nevertheless, the recalibrated mean prediction of 0.0882 remains below the observed mature-cohort event rate of 0.1464, with a test calibration intercept of 0.3194 and slope of 0.8722. Recalibration therefore improves but does not eliminate temporal miscalibration, and its out-of-time validity remains a distinct monitoring requirement.
+
+Fourth, the operating point is materially determined by policy assumptions. After recalibration, the 5:1, 10:1, and 20:1 cost scenarios select thresholds of 0.1730, 0.0962, and 0.0327. Their corresponding test review rates are 7.75\%, 37.53\%, and 85.06\%, while FNRs are 84.35\%, 41.36\%, and 4.90\%. The 20:1 scenario gives the largest saving compared with no review, but costs 46 more units than the review-all classification proxy and flags approximately 85\% of the cohort. Threshold optimisation therefore cannot be separated from institutional estimates of costs, review capacity, consumer consequences, and risk appetite.
+
+Finally, the unemployment and slice analyses demonstrate why explicit support requirements and uncertainty estimates are essential to segmented monitoring. The high-state-unemployment subgroup contains 641 loans and 74 adverse outcomes. Its FNR point estimate at the recalibrated 10:1 threshold is higher than that of the other-state subgroup, but its confidence interval is substantially wider. Only four grade-by-term cells satisfy the requirement of at least 10 adverse outcomes and 10 non-events in each unemployment group, and the high-unemployment cells contain only 11--21 adverse outcomes. These findings justify hypothesis-generating monitoring and escalation signals, but not a causal unemployment interpretation or a definitive claim of systematic subgroup failure.
+
+The compared groups are based on loan characteristics and place of residence, not verified protected demographic characteristics. A difference in errors across these groups may call for closer monitoring, but it cannot establish discrimination or equal treatment. A formal fairness assessment would need suitable demographic and rejected-applicant information as well as a clear legal and statistical definition of fairness.
+
+\noindent\textbf{What the additional benchmarks do not establish.} The raw selected HistGB probabilities underperform a constant training-prevalence prediction on Brier score, and recalibration improves Brier skill to only about $+1.51\%$. On the reported simplified loss, flag-all is cheaper than the selected model policy at 10:1 and 20:1. The size of these discrepancies raises questions about practical model value; improvements in ECE do not justify deployment when mean test risk remains below the observed selected-cohort adverse rate. A complete prospective decision analysis requires a common outcome horizon, stable calibration, lending exposure and profit/loss information, actions taken by reviewers, and outcome information for applicants rejected by the historical policy. This study has none of those ingredients for causal policy evaluation.
+
+\subsection{Scope and limitations}
+\label{sec:limitations}
+
+This study is a retrospective audit of originated US P2P loans and does not identify causal effects of unemployment, model use, or automated decisions on credit access. Rejected applicants and protected-class attributes are unavailable, limiting reject-inference, fairness, and broader generalisation claims. The mature-cohort analysis also conditions on terminal resolution or sufficient follow-up and may over-represent loans that resolve earlier. The competing-risk analysis also retains unresolved loans as right-censored and treats full repayment as a competing event, although follow-up support declines substantially by 36 months and exact event dates have not been independently verified.
+
+Model comparisons remain conditional on the evaluated chronological split, training-size regimes, and modelling specifications. Paired bootstrap inference does not establish population-wide equivalence, and validation-only recalibration leaves residual out-of-time miscalibration. The high-state-unemployment subgroup is small ($n=641$, 74 adverse outcomes), with only 11--21 adverse outcomes in supported grade-by-term cells, so these findings are interpreted as hypothesis-generating monitoring signals rather than causal or definitive subgroup effects. Finally, the FN:FP cost ratios and review rates are analytical scenarios rather than measured institutional costs or observed review demand; deployment would require institution-specific cost, capacity, legal, and calibration assessment.
+
+There is no empirical estimate of the effect of the proposed governance actions $A_t=g(\cdot)$: institutional thresholds and responses have not been implemented or observed. The apparent retrospective alert examples rely on post-hoc tolerances; they are not proof of prevented harm or regulatory compliance. The original single-seed model rankings (supplemented, but not resolved, by three-seed checks), reused validation sample, unresolved decision-time provenance for nine preliminary flags and additional Stata-derived predictors, the conditional nature of state/month bootstrap intervals, lack of multiplicity adjustment, and different definitions of the classification and competing-risk endpoints further limit causal and external interpretation. Additional analysis with confirmed historical outcome snapshots and independent origination, calibration, and test windows is needed before making deployment-level claims.
+
+The findings also come from one US P2P lending platform and loans issued from August 2012 to December 2019. Only 10.26\% of test-period originations are included in the selected test analysis. We therefore cannot assume that the reported model accuracy, calibration, or decision costs apply to rejected borrowers, the full origination cohort, other platforms, later years, or other countries. Independent data with consistently observed outcomes would be needed to test those claims.
+
+\noindent\textbf{Evidence status for independent validation.} The revised case study supplies cohort accounting, retrospective cost-rule comparisons, feature-exclusion sensitivity, several fixed-model bootstrap analyses, a sparse-subgroup audit and a reproducible hypothetical alert calculation. It does \emph{not} estimate all-origination predictive performance under censoring, establish historical decision-time provenance for every predictor, correct validation reuse through nested selection, justify the cost ratios with lender data, validate an effective human-review intervention, or show external fairness/transportability. These are explicitly unverified deployment conditions, not deficiencies that can be resolved by confidence intervals on the selected test cohort alone. Any subsequent external replication should report those requirements as prospective work rather than silently regarding the present limitations as eliminated.
+
+\section{Conclusion}
+
+Safe AI credit decisions require more than a high headline AUC. In this study, outcome maturity materially changes the evaluation population, model ranking reverses across training-sample sizes, validation-only recalibration improves but does not eliminate temporal miscalibration, and threshold-conditioned outcomes vary substantially with the assumed cost ratio. At the same time, the state-level unemployment and grade-by-term diagnostics demonstrate that subgroup signals can be too imprecise for definitive directional claims when event support is limited. The resulting governance implication is therefore not that one model architecture or threshold is universally preferable. Rather, credible AI credit governance requires a documented outcome horizon and censoring strategy, training-size sensitivity and paired model comparison, independent probability recalibration, explicit cost and capacity approval before threshold selection, minimum event support and uncertainty estimates for segmented monitoring, and reproducible data, model, calibration, and decision lineage. Recommendations concerning accountable ownership, escalation authority, human oversight, and release or suspension decisions are institutional governance implications informed by regulatory frameworks rather than effects estimated by this retrospective analysis. Together, these controls treat the model as one component of an accountable credit-policy system rather than as the policy itself.
+
+These findings are limited to the observed loan records and the cost assumptions tested here. They should not be read as a verified estimate of default risk, fairness, or policy benefit for all borrowers without more complete follow-up, confirmed predictor timing, and independent testing.
+
+ \section*{Declarations}
+
+ \noindent\textbf{Author contributions.}
+ Kumar Utkarsh Singh: Conceptualization, methodology, data curation, formal analysis, software, visualization, and writing--original draft.
+ Jayasree Varadarajan: Methodology, validation, interpretation of results, and writing--review and editing.
+ Md Abu Sufian: Conceptualization, methodology, supervision, validation, governance framework development, and writing--review and editing.
+ Md Aminul Islam Rana: Methodology, validation, interpretation of results, and writing--review and editing.
+ Nadeem Qazi: Supervision, validation, interpretation of results, and writing--review and editing.
+ Nabeela Berardinelli: Supervision, validation, critical review, and writing--review and editing.
+ All authors reviewed and approved the final manuscript.
+
+ \noindent\textbf{Funding.} This research received no external funding.
+
+ \noindent\textbf{Ethics approval.} Not applicable. The study is a secondary analysis of a publicly archived, de-identified loan-level dataset and involves no human participants.
+
+
+\noindent\textbf{Data availability.}
+The analysis uses the publicly archived \textit{Dataset from the US Peer-to-peer Lending Platform with Macroeconomic Variables}, deposited by Nigmonov at Mendeley Data under a CC BY 4.0 licence \cite{ref48}. All analyses reported in this study use version 3 (DOI: \href{https://doi.org/10.17632/wb3ndt69gf.3}{10.17632/wb3ndt69gf.3}, published 30 September 2021, accessed 5 June 2025). Version 4, released subsequently, was not used. The source deposit contains the merged loan and macroeconomic data, variable labels, and original Stata construction materials. The deposited source data are available through the public DOI above; the local analysis files and code are separate reproducibility materials.
+
+
+\noindent\textbf{Code availability.}
+The project repository is identified as \url{https://github.com/datascintist-abusufian/Government-ai-policy-credit-decisions}. The present audit confirmed the existence of local analysis scripts and saved numerical outputs but did not independently verify that the repository currently contains every exact script, feature-list file, dependency version, and dataset extraction instruction used for this manuscript. The complete code and environment manifest therefore require an archive-level verification before a claim of full public reproducibility can be made. Section~\ref{app:repro} and Table~\ref{tab:audit_package} describe the materials needed for that verification.
+
+The inspected GitHub repository includes research notebooks and an embedded 14-file ZIP containing a \emph{different}, NeurIPS 2026 MusIML reanalysis, with a 2015 fixed-vintage, 38-raw-feature design and 88,784 test observations. That archive is not a replication package for the present Cogent analysis with 150 original input variables and 41,145 selected test observations. The Cogent-specific Round 2 scripts, feature manifests, clustered uncertainty, and governance-alert outputs are verified as local files, but their public deposition and clean-environment replay have not been independently verified. We therefore do not assert that the present manuscript is already fully reproducible from the linked ZIP.
+
+
+ \noindent\textbf{Conflict of interest.} The authors declare no conflicts of interest.
+
+
+\section{Supplementary Material}
+
+
+\subsection{Reproducibility and Policy-Audit Specification}
+\label{app:repro}
+
+\noindent\textbf{Status of the current replication evidence.} The verified analysis artefacts include the saved 153-variable locked specification (three high-cardinality text fields excluded before fitting), 12 original training-size/model score rows, 30 prediction/label arrays with matching evaluation lengths, the deterministic training-membership audit, threshold-cost checks, and the Brier-baseline audit. These artefacts were examined for basic numeric and dimensional consistency, not independently reproduced end-to-end in a clean software environment. The exact versions of Python, NumPy, pandas and scikit-learn used for the original models were not established by the available audit reports, and a dependency lock file and complete public feature-list archive have not been verified. For an exact replication release, the \texttt{cell26\_locked\_feature\_specification.csv} and \texttt{cell26\_feature\_missingness.csv}, model notebook/code, original Stata version, environment lock, thresholds, calibration bins, and decision-time data provenance must be deposited together; a repository URL alone is insufficient evidence of independent reproducibility.
+
+\noindent\textbf{Round 2 audit environment and code lineage.} The Windows environment used for the additional audits was Python 3.14.7, NumPy 2.5.2, pandas 2.3.3, scikit-learn 1.9.0, SciPy 1.18.1, Matplotlib 3.11.1, joblib 1.5.3, lifelines 0.30.3, statsmodels 0.15.0, and threadpoolctl 3.6.0; versions were recorded in \texttt{36\_requirements\_round2.txt}. These are \emph{not} verified original-training package versions. The exact full 150-variable specification is in the local \texttt{cell26\_locked\_feature\_specification.csv} (153 locked fields before the three named text exclusions); the complete 77-variable inclusion/exclusion audit is in \texttt{31\_conservative\_feature\_manifest.csv}. The existing code and result sequence includes three-seed endpoint checks (Step 22), paired validation-AUC selection uncertainty (Step 23), the source Stata timing audit (Step 30), conservative predictor sensitivity (Step 31), state/month-block test uncertainty (Step 32, corrected v2), state subgroup support (Step 33), and retrospective alerts (Step 34). Original saved probability arrays and 10-bin reliability CSVs remain read-only sources for the later checks. These are supplemental replication artefacts and conditional sensitivity calculations, not a full independent pipeline recreation. End-to-end replication requires a checked Cogent-specific notebook, raw-data acquisition instructions, the historical source/snapshot and model versions, exact field ordering, and a published script-to-table map distinct from the linked NeurIPS archive.
+
+
+A publication-quality replication should generate one machine-readable manifest per result containing: (1) data-source and extraction date; (2) record-level eligibility rules; (3) observation count before and after each exclusion; (4) feature list and information-availability timestamp; (5) imputation and encoding parameters fitted on training data; (6) model code and parameter version; (7) calibration method and fitting sample; (8) threshold objective and approval date; (9) metric definitions, binning rules, and confidence intervals; and (10) subgroup suppression rules for small samples. The manifest should reconcile the 41,145-loan outcome-mature test cohort with the 401,169-loan chronological test partition, record every maturity exclusion, and identify the regime indicator and minimum-sample rule used for each segmented result. Table~\ref{tab:audit_package} summarises the minimum evidence package required for replication and governance review.
+
+For a clear sample-size check, the chronological partitions contain 1,931,267 training, 370,994 validation, and 401,169 test loans (2,703,430 in total). The selected outcome-mature partitions contain 1,304,058, 27,374, and 41,145 loans, respectively (1,372,577 in total). The model-development seed is 42. Saved validation and test outcome arrays and their corresponding model-prediction arrays have matching lengths of 27,374 and 41,145. These checks confirm that the saved output sizes agree with the selected cohorts; they do not resolve outcome selection or prove that all predictors were available at origination. A full replication should keep the exact source version, eligibility rules, model inputs, preprocessing settings, software versions, seeds, and output files together.
+
+\begin{table}[!ht]
+\centering
+\caption{Exact nested-training sample composition from the deterministic seed-42 reconstruction. The final column counts 2014/2016 36-month loans recorded as Current with \texttt{badloan}=0; this identifies possible incomplete-follow-up exposure, not proven mislabels.}
+\label{tab:r2_sample_composition}
+\begin{tabular}{rrrrr}
+\toprule
+Training $n$ & Terminal $n$ & Nonterminal $n$ & Current $n$ & 2014/2016 Current $n$ \\
+\midrule
+180,000 & 120,775 & 59,225 & 56,789 & 43,108 \\
+360,000 & 241,507 & 118,493 & 113,659 & 86,075 \\
+540,000 & 362,624 & 177,376 & 170,222 & 128,724 \\
+1,304,058 & 874,826 & 429,232 & 411,857 & 311,541 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[!ht]
+\centering
+\caption{Minimum evidence package for replication and governance review.}
+\label{tab:audit_package}
+\begin{tabular}{L{3.5cm}L{10.5cm}}
+\toprule
+Component & Required content \\
+\midrule
+Population & Inclusion/exclusion logic, dates, censoring rule, counts, and outcome maturity \\
+Data lineage & Source version, joins, availability timestamps, missingness, and transformations \\
+Model lineage & Code version, random seed, hyperparameters, training window, and model identifier \\
+Calibration & Method, calibration sample, bins or slope/intercept, and validity period \\
+Decision policy & Threshold, objective, cost assumptions, review capacity, and override route \\
+Stress design & Pre-specified scenarios, threshold-estimation window, and economic rationale \\
+Subgroup audit & Slice definitions, sample floors, uncertainty, proxy assessment, and remediation rule \\
+Monitoring & Owners, limits, breach alerts, actions, closure evidence, and governing-body reporting \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+
+
+
+\subsection{Additional Numerical Sensitivity Tables}
+\label{app:r2_numerical_supplements}
+
+The following supplementary tables reproduce the numerical outputs of the existing Round 2 audits. They do not replace the original results, imply additional model fitting, or justify extending the outcome-selected results to all originations.
+
+% Keep the pre-existing main-manuscript and audit-table numbering unchanged.
+% These additional tables receive a separate S-series counter.
+\setcounter{table}{0}
+\renewcommand{\thetable}{S\arabic{table}}
+
+\begin{table}[!ht]
+\centering
+\caption{Supplementary clustered test uncertainty for the previously fitted models and validation-selected 10:1 decision rule.}
+\label{tab:supp_clustered}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{L{5.0cm}rll}
+\toprule
+Statistic & Observed & State-clustered 95\% CI & Origination-month-block 95\% CI \\
+\midrule
+Logistic minus HistGB ROC-AUC & 0.024294 & [0.016788, 0.031395] & [0.011905, 0.028842] \\
+HistGB minus MLP ROC-AUC & 0.028740 & [0.020171, 0.039099] & [0.023776, 0.039166] \\
+Recalibrated HistGB Brier score & 0.123161 & [0.116103, 0.128728] & [0.090388, 0.144676] \\
+Observed minus predicted mean risk & 0.058236 & [0.049784, 0.066836] & [0.015805, 0.086498] \\
+Recalibrated ten-bin ECE & 0.058325 & [0.049925, 0.066921] & [0.016788, 0.086569] \\
+False-negative rate, 10:1 & 0.413610 & [0.361435, 0.475184] & [0.398316, 0.427787] \\
+Flag rate, 10:1 & 0.375307 & [0.325657, 0.419153] & [0.368681, 0.381145] \\
+High minus other unemployment FNR, 10:1 & 0.183235 & [0.105707, 0.299410] & [0.069721, 0.275649] \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+{\footnotesize \textit{Notes:} Step 32, corrected v2. The analysis resamples 50 state/jurisdiction clusters and, separately, nine test-origination months, with 1,500 bootstrap draws each; the high-minus-other FNR has 1,481 valid state draws, all other displayed confidence intervals have 1,500 valid draws. Percentile intervals condition on the fitted models, calibration and decision thresholds; there is no joint two-way or end-to-end training-pipeline bootstrap, multiplicity adjustment or correction for outcome-dependent maturity selection. The nine-month bootstrap and the four-jurisdiction high-unemployment subgroup are particularly fragile. ECE uses ten equal-width bins.}
+\end{table}
+
+\begin{table}[!ht]
+\centering
+\caption{Geographic concentration of selected test loans in the high-state-unemployment group ($\mathrm{unem\_rate}\geq0.049$, corresponding to 4.9\%).}
+\label{tab:supp_geographic}
+\begin{tabular}{lrr}
+\toprule
+Jurisdiction & Loans & Recorded adverse outcomes \\
+\midrule
+West Virginia (WV) & 253 & 23 \\
+New Mexico (NM) & 218 & 30 \\
+Washington, DC (DC) & 85 & 10 \\
+Alaska (AK) & 85 & 11 \\
+\midrule
+\textbf{Total} & \textbf{641} & \textbf{74} \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}
+{\footnotesize \textit{Notes:} Step 33, 41,145-loan outcome-selected test cohort. All nine origination months appear in this group, but only four jurisdictions contribute. The inverse-Herfindahl effective number of jurisdictions is approximately 3.26 by loan count and 3.32 by adverse outcomes. These figures do not support an independent state-level causal or protected-class fairness inference.}
+\end{table}
+
+\begin{table}[!ht]
+\centering
+\caption{Retrospective illustrative governance alerts in the validation and test windows, using unchanged validation-selected thresholds.}
+\label{tab:supp_governance}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrrL{5.8cm}}
+\toprule
+Window & FN:FP & FNR & Flag rate & Model loss & Best trivial loss & Triggered illustrative alerts \\
+\midrule
+Validation & 5:1 & 0.7008 & 0.1267 & 12,350 & 13,855 & Maturity; FNR \\
+Validation & 10:1 & 0.2699 & 0.4756 & 18,475 & 24,603 & Maturity; FNR; flag capacity \\
+Validation & 20:1 & 0.0278 & 0.8664 & 22,563 & 24,603 & Maturity; flag capacity \\
+\midrule
+Test & 5:1 & 0.8435 & 0.0775 & 27,654 & 30,125 & Maturity; calibration; FNR \\
+Test & 10:1 & 0.4136 & 0.3753 & 36,829 & 35,120 & Maturity; calibration; FNR; cost worse than trivial \\
+Test & 20:1 & 0.0490 & 0.8506 & 35,166 & 35,120 & Maturity; calibration; flag capacity; cost worse than trivial \\
+\bottomrule
+\end{tabular}}
+\vspace{2pt}
+{\footnotesize \textit{Notes:} Step 34. Example limits: selected outcome-maturity share at least 50\%, absolute observed-minus-predicted mean calibration gap no more than two percentage points, FNR no more than 25\%, and flag rate no more than 40\%. The selected shares are 7.38\% of all validation originations ($27{,}374/370{,}994$) and 10.26\% of all test originations ($41{,}145/401{,}169$). The recalibrated mean gap is approximately 0.0003 percentage points in validation and 5.8236 points in test. Classification loss is a simple error proxy; ``best trivial'' is the lower loss from flag-none and flag-all. All limits are illustrative, post-hoc, not regulatory/institutional criteria; no effectiveness of any governance action was observed or estimated.}
+\end{table}
+
+\begin{table}[!ht]
+\centering
+\caption{Paired validation ROC-AUC uncertainty for the full-training seed-42 model-selection comparison.}
+\label{tab:supp_selection}
+\begin{tabular}{lrl}
+\toprule
+Validation comparison & Observed AUC difference & Paired bootstrap 95\% CI \\
+\midrule
+HistGB minus MLP & 0.003463 & [$-0.004777$, $0.011918$] \\
+HistGB minus logistic & 0.004044 & [$-0.003713$, $0.012025$] \\
+\bottomrule
+\end{tabular}
+\par\vspace{2pt}
+{\footnotesize \textit{Notes:} Step 23, 2,000 paired outcome-stratified resamples of the 27,374 selected validation loans. Both intervals include zero. The comparison uses the same validation cohort on which the model winner was identified, and does not remove validation-selection optimism, subsequent calibration/threshold reuse, or training-pipeline uncertainty. No equivalence claim is made.}
+\end{table}
+
+
+\begin{thebibliography}{99}
+\bibitem{ref1}
+Thakor, A.V. Fintech and Banking: What Do We Know? \textit{Journal of Financial Intermediation} \textbf{2020}, \textit{41}, 100833. \url{https://doi.org/10.1016/j.jfi.2019.100833}
+
+\bibitem{ref2}
+Fuster, A.; Goldsmith-Pinkham, P.; Ramadorai, T.; Walther, A. Predictably Unequal? The Effects of Machine Learning on Credit Markets. \textit{Journal of Finance} \textbf{2022}, \textit{77}, 5--47. \url{https://doi.org/10.1111/jofi.13090}
+
+\bibitem{ref7}
+Rudin, C. Stop Explaining Black Box Machine Learning Models for High Stakes Decisions and Use Interpretable Models Instead. \textit{Nature Machine Intelligence} \textbf{2019}, \textit{1}, 206--215. \url{https://doi.org/10.1038/s42256-019-0048-x}
+
+\bibitem{ref8}
+Kleinberg, J.; Mullainathan, S.; Raghavan, M. Inherent Trade-Offs in the Fair Determination of Risk Scores. \textit{Proceedings of the 8th Innovations in Theoretical Computer Science Conference}, 2017. \url{https://doi.org/10.4230/LIPIcs.ITCS.2017.43}
+
+\bibitem{ref13}
+Buchak, G.; Matvos, G.; Piskorski, T.; Seru, A. FinTech, Regulatory Arbitrage, and the Rise of Shadow Banks. \textit{Journal of Financial Economics} \textbf{2018}, \textit{130}, 453--483. \url{https://doi.org/10.1016/j.jfineco.2018.03.011}
+
+\bibitem{ref17}
+Berg, T.; Burg, V.; Gombović, A.; Puri, M. On the rise of FinTechs—Credit scoring using digital footprints. \textit{Review of Financial Studies} \textbf{2020}, \textit{33}, 2845--2897. \url{https://doi.org/10.1093/rfs/hhz099}
+
+\bibitem{ref18}
+Kleinberg, J.; Ludwig, J.; Mullainathan, S.; Obermeyer, Z. Prediction Policy Problems. \textit{American Economic Review: Papers \& Proceedings} \textbf{2015}, \textit{105}, 491--495. \url{https://doi.org/10.1257/aer.p20151023}
+
+\bibitem{ref19}
+Hardt, M.; Price, E.; Srebro, N. Equality of Opportunity in Supervised Learning. \textit{NeurIPS} \textbf{2016}. \url{https://doi.org/10.48550/arXiv.1610.02413}
+
+\bibitem{ref26}
+Gneiting, T.; Raftery, A.E. Strictly Proper Scoring Rules, Prediction, and Estimation. \textit{Journal of the American Statistical Association} \textbf{2007}, \textit{102}, 359--378. \url{https://doi.org/10.1198/016214506000001437}
+
+\bibitem{ref29}
+Guo, C.; Pleiss, G.; Sun, Y.; Weinberger, K.Q. On Calibration of Modern Neural Networks. In \textit{Proceedings of the 34th International Conference on Machine Learning (ICML)}, PMLR \textbf{2017}, \textit{70}, 1321--1330. \url{https://proceedings.mlr.press/v70/guo17a.html}
+
+\bibitem{ref30}
+Quionero-Candela, J.; Sugiyama, M.; Schwaighofer, A.; Lawrence, N.D. (Eds.) \textit{Dataset Shift in Machine Learning}. MIT Press, 2009. \url{https://doi.org/10.7551/mitpress/9780262170055.001.0001}
+
+\bibitem{ref34}
+Ovadia, Y.; Fertig, E.; Ren, J.; Nado, Z.; Sculley, D.; Nowozin, S.; Dillon, J.V.; Lakshminarayanan, B.; Snoek, J. Can You Trust Your Model's Uncertainty? Evaluating Predictive Uncertainty Under Dataset Shift. In \textit{Advances in Neural Information Processing Systems (NeurIPS)} \textbf{2019}, \textit{32}. \url{https://arxiv.org/abs/1906.02530}
+
+\bibitem{ref39}
+National Institute of Standards and Technology (NIST). \textit{Artificial Intelligence Risk Management Framework (AI RMF 1.0)}; NIST AI 100-1; 2023. Available online: \url{https://doi.org/10.6028/NIST.AI.100-1}
+
+\bibitem{ref40}
+European Union. Regulation (EU) 2024/1689 of the European Parliament and of the Council of 13 June 2024, laying down harmonised rules on artificial intelligence (the Artificial Intelligence Act). \textit{Official Journal of the European Union} \textbf{2024}, L~2024/1689 (12 July 2024). Available online: \url{https://eur-lex.europa.eu/eli/reg/2024/1689/oj/eng}
+
+\bibitem{ref41}
+Pedregosa, F.; et al. Scikit-learn: Machine Learning in Python. \textit{JMLR} \textbf{2011}, \textit{12}, 2825--2830. Available online: \url{https://jmlr.org/papers/v12/pedregosa11a.html}
+
+\bibitem{ref42}
+Kingma, D.P.; Ba, J. Adam: A Method for Stochastic Optimisation. \textit{ICLR} \textbf{2015}. Available online: \url{https://arxiv.org/abs/1412.6980}
+
+\bibitem{ref44}
+European Banking Authority. \textit{Guidelines on Loan Origination and Monitoring}; EBA/GL/2020/06; 29 May 2020. Available online: \url{https://www.eba.europa.eu/activities/single-rulebook/regulatory-activities/credit-risk/guidelines-loan-origination-and-monitoring} (accessed 27 August 2026).
+
+\bibitem{ref45}
+Prudential Regulation Authority. \textit{SS1/23: Model Risk Management Principles for Banks}; current version published 23 April 2026. Available online: \url{https://www.bankofengland.co.uk/prudential-regulation/publication/2023/may/model-risk-management-principles-for-banks-ss} (accessed 27 August 2026).
+
+\bibitem{ref46}
+Financial Conduct Authority. \textit{PRIN 2A: The Consumer Duty}, including PRIN 2A.8--2A.9 on governance and outcomes monitoring. Available online: \url{https://handbook.fca.org.uk/handbook/PRIN/2A/} (accessed 27 August 2026).
+
+\bibitem{ref48}
+Nigmonov, A. \textit{Dataset from the US Peer-to-peer Lending Platform with Macroeconomic Variables}, Version 3; Mendeley Data, 30 September 2021. \url{https://doi.org/10.17632/wb3ndt69gf.3} (CC BY 4.0).
+
+\bibitem{ref47}
+Board of Governors of the Federal Reserve System. \textit{SR 26-2: Revised Guidance on Model Risk Management}; 17 April 2026. Available online: \url{https://www.federalreserve.gov/supervisionreg/srletters/SR2602.htm} (accessed 27 August 2026).
+
+\bibitem{ref49}
+Stepanova, M.; Thomas, L.C. Survival Analysis Methods for Personal Loan Data. \textit{Operations Research} \textbf{2002}, \textit{50}, 277--289. \url{https://doi.org/10.1287/opre.50.2.277.426}
+
+\bibitem{ref50}
+Bellotti, T.; Crook, J. Credit Scoring with Macroeconomic Variables Using Survival Analysis. \textit{Journal of the Operational Research Society} \textbf{2009}, \textit{60}, 1699--1707. \url{https://doi.org/10.1057/jors.2008.130}
+
+\bibitem{ref51}
+Dirick, L.; Claeskens, G.; Baesens, B. Time to Default in Credit Scoring Using Survival Analysis: A Benchmark Study. \textit{Journal of the Operational Research Society} \textbf{2017}, \textit{68}, 652--665. \url{https://doi.org/10.1057/s41274-016-0128-9}
+
+\bibitem{ref52}
+Li, Z.; Li, A.; Bellotti, A.; Yao, X. The Profitability of Online Loans: A Competing Risks Analysis on Default and Prepayment. \textit{European Journal of Operational Research} \textbf{2023}, \textit{306}, 968--985. \url{https://doi.org/10.1016/j.ejor.2022.08.013}
+
+
+\bibitem{ref53}
+Hand, D.J.; Henley, W.E. Statistical Classification Methods in Consumer Credit Scoring: A Review. \textit{Journal of the Royal Statistical Society: Series A} \textbf{1997}, \textit{160}, 523--541. \url{https://doi.org/10.1111/j.1467-985X.1997.00078.x}
+
+\bibitem{ref54}
+Hand, D.J.; Adams, N.M. Selection Bias in Credit Scorecard Evaluation. \textit{Journal of the Operational Research Society} \textbf{2014}, \textit{65}, 408--415. \url{https://doi.org/10.1057/jors.2013.55}
+
+\bibitem{ref55}
+Ehrhardt, A.; Biernacki, C.; Vandewalle, V.; Heinrich, P.; Beben, S. Reject Inference Methods in Credit Scoring. \textit{Journal of Applied Statistics} \textbf{2021}, \textit{48}, 2734--2754. \url{https://doi.org/10.1080/02664763.2021.1929090}
+
+\bibitem{ref56}
+Kiefer, N.M.; Larson, C.E. Specification and Informational Issues in Credit Scoring; OCC Economics Working Paper 2004-5; Office of the Comptroller of the Currency, 2004. \url{https://www.occ.treas.gov/publications-and-resources/publications/economics/working-papers-archived/economic-working-paper-2004-5.html}
+
+\bibitem{ref57}
+Verbraken, T.; Bravo, C.; Weber, R.; Baesens, B. Development and Application of Consumer Credit Scoring Models Using Profit-Based Classification Measures. \textit{European Journal of Operational Research} \textbf{2014}, \textit{238}, 505--513. \url{https://doi.org/10.1016/j.ejor.2014.04.001}
+
+\bibitem{ref58}
+Vickers, A.J.; Elkin, E.B. Decision Curve Analysis: A Novel Method for Evaluating Prediction Models. \textit{Medical Decision Making} \textbf{2006}, \textit{26}, 565--574. \url{https://doi.org/10.1177/0272989X06295361} (methodological analogy; not a credit-specific empirical study).
+
+\end{thebibliography}
+
+\end{document}

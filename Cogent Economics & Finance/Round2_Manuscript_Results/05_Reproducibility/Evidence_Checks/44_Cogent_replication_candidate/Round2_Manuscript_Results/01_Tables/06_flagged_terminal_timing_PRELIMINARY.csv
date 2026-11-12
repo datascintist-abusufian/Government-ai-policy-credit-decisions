@@ -1,0 +1,7 @@
+﻿"Cohort","LoanStatus","PaymentTiming","N","PercentOfSelectedCohort"
+"Test","Charged Off","During_April_2020","21","0.051"
+"Test","Charged Off","Missing_or_Unparsed","587","1.4267"
+"Test","Default","Missing_or_Unparsed","1","0.0024"
+"Test","Fully Paid","After_April_2020","46","0.1118"
+"Test","Fully Paid","During_April_2020","2308","5.6094"
+"Validation","Charged Off","Missing_or_Unparsed","371","1.3553"

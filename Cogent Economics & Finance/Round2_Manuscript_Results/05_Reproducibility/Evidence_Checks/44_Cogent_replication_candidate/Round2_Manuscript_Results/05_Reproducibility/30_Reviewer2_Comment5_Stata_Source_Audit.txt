@@ -1,0 +1,46 @@
+ROUND 2 REVIEWER 2 COMMENT 5: SOURCE-CODE AUDIT
+Date: 2026-11-05
+Files inspected: P2P_Macro_Codes.do (81 lines), Labels.do (151 lines)
+
+KEY DIRECT FINDINGS FROM THE PROVIDED STATA CODE
+
+1. POST-ORIGINATION DATE DERIVATIONS. Lines 11-23 of P2P_Macro_Codes.do:
+   issue_date is parsed from issue_d; last_date is parsed from last_pymnt_d; missing last_date is filled with issue_date.
+   quarter, month and year are then calculated from daily_date = dofm(last_date).
+   Thus the provided generation logic for model predictors year, month, quarter depends on last payment timing, not the application date.
+   issue_year, separately, is based on issue_d, described in Labels.do line 36 as the month the loan was FUNDED.
+
+2. POST-ORIGINATION LOAN-VOLUME DERIVATIONS. Lines 74-81 of P2P_Macro_Codes.do:
+   loan_vol is built by grouping state and last_date and aggregating loan_amnt. Because last_date comes from last_pymnt_d, this is post-origination information.
+   median_dummy is built from loan_vol. If the dataset feature logloan_vol is derived from loan_vol, it inherits the concern, but the provided .do file does not show its definition.
+
+3. NON-TRAILING SAME-MONTH AGGREGATE. Line 75 of P2P_Macro_Codes.do:
+   loan_vol6m is grouped by state and issue_date and sums loan_amnt for the group. Despite its name, this code is NOT a trailing six-month calculation.
+   loglvol_6m is log(loan_vol6m) (line 76). Same-month aggregates can depend on loan originations later in that month.
+
+4. ROW-SHIFTED FIELDS (UNVERIFIED TIME LAGS). Lines 69-73 of P2P_Macro_Codes.do:
+   muni_6m and inf_6m are replaced by observations six ROWS earlier, not explicitly six calendar months earlier. Correct time alignment cannot be assumed from this code.
+
+5. FUNDING/STAGE-DEPENDENT FIELDS. Lines 41-47 of P2P_Macro_Codes.do:
+   logfunded_amnt is explicitly the log of funded_amnt. The latter is the committed loan amount (Labels.do line 24).
+   funded_amnt_inv describes investor commitments (Labels.do line 25); grade/sub_grade, interest rate and installment can be set during underwriting/funding.
+   Their permissible use depends on whether the intended prediction is at application, pricing or post-funding monitoring.
+
+6. OUTCOME TARGET. Lines 32-38 of P2P_Macro_Codes.do:
+   badloan=1 for Charged Off, Default, policy-related Charged Off, and two Late statuses. All other statuses are assigned badloan=0, including Current.
+   This is a mixed recorded-status endpoint, not a common fixed-horizon default measure. Its snapshot timestamp is not established by these files.
+
+7. HISTORICAL MACRO VARIABLES AND FAIRNESS PROXIES:
+   This code does not establish release/publication timing for GDP, CPI, unemployment or other aggregated covariates.
+   Geographic/political/religiosity variables may introduce proxy and fairness risks independently of leakage; this cannot be resolved by their names alone.
+
+INTERPRETATION
+   The supplied source provides concrete evidence of unsafe feature-construction rules for an application-time model, beyond the nine preliminary flags.
+   However, the code does not verify that every stored column in the local .dta was produced by exactly this version of the script.
+   To make that claim, confirm the actual stored values/lineage. The raw low HistGB probability is not itself evidence of leakage.
+
+RECOMMENDED NEXT TEST
+   One targeted, conservative feature-exclusion sensitivity using the same chronological cohorts and seed 42, comparing against the existing saved 150-feature predictions.
+   Exclude explicitly post-outcome constructs (year, month, quarter, loan_vol, median_dummy, and relevant transforms), same-month aggregates (loan_vol6m, loglvol_6m), underwriting/funding-only fields where unavailable for the specified decision stage, and macroeconomic variables whose historical timing cannot be established.
+   Do not claim that the retained predictors are definitively free of leakage. Test outcome selection remains a separate problem.
+   Preserve all original files and save the reduced-feature experiment separately.

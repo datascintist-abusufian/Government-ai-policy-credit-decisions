@@ -1,0 +1,23 @@
+grade,term,regime,n,defaults,nondefaults
+A,36 months,Other-state,10770,709,10061
+A,36 months,High-unemployment,154,7,147
+A,60 months,Other-state,709,48,661
+A,60 months,High-unemployment,10,1,9
+B,36 months,Other-state,7784,919,6865
+B,36 months,High-unemployment,119,5,114
+B,60 months,Other-state,3362,448,2914
+B,60 months,High-unemployment,49,6,43
+C,36 months,Other-state,6411,1182,5229
+C,36 months,High-unemployment,110,21,89
+C,60 months,Other-state,3390,670,2720
+C,60 months,High-unemployment,58,11,47
+D,36 months,Other-state,5118,1204,3914
+D,36 months,High-unemployment,85,12,73
+D,60 months,Other-state,2947,764,2183
+D,60 months,High-unemployment,56,11,45
+E,36 months,Other-state,8,5,3
+E,36 months,High-unemployment,0,0,0
+E,60 months,Other-state,3,2,1
+E,60 months,High-unemployment,0,0,0
+F,36 months,Other-state,2,0,2
+F,36 months,High-unemployment,0,0,0

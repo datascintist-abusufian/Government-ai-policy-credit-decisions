@@ -1,0 +1,246 @@
+{
+  "generated_at_utc": "2026-11-06T04:41:14.657450+00:00",
+  "project_root": "E:\\Governance-Policy\\Cogent Economics & Finance",
+  "python_current": "3.14.7",
+  "original_training_environment_exact_versions_verified": false,
+  "current_environment": {
+    "numpy": "2.5.2",
+    "pandas": "2.3.3",
+    "scipy": "1.18.1",
+    "scikit-learn": "1.9.0",
+    "matplotlib": "3.11.1",
+    "statsmodels": "0.15.0",
+    "lifelines": "0.30.3",
+    "joblib": "1.5.3",
+    "threadpoolctl": "3.6.0"
+  },
+  "checks": [
+    {
+      "label": "round2_code/14_inventory_existing_outputs.py",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Code\\14_inventory_existing_outputs.py",
+      "exists": true,
+      "required": true,
+      "size_bytes": 9121
+    },
+    {
+      "label": "round2_code/16_verify_existing_statistical_outputs.py",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Code\\16_verify_existing_statistical_outputs.py",
+      "exists": true,
+      "required": true,
+      "size_bytes": 7010
+    },
+    {
+      "label": "round2_code/17_review_all_policy_benchmarks.py",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Code\\17_review_all_policy_benchmarks.py",
+      "exists": true,
+      "required": true,
+      "size_bytes": 10120
+    },
+    {
+      "label": "round2_code/18_brier_baseline_verification.py",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Code\\18_brier_baseline_verification.py",
+      "exists": true,
+      "required": true,
+      "size_bytes": 13480
+    },
+    {
+      "label": "round2_code/19_predictor_provenance_audit.py",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Code\\19_predictor_provenance_audit.py",
+      "exists": true,
+      "required": true,
+      "size_bytes": 11324
+    },
+    {
+      "label": "round2_code/20_training_vintage_composition.py",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Code\\20_training_vintage_composition.py",
+      "exists": true,
+      "required": true,
+      "size_bytes": 5933
+    },
+    {
+      "label": "round2_code/22_training_seed_stability.py",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Code\\22_training_seed_stability.py",
+      "exists": true,
+      "required": true,
+      "size_bytes": 11199
+    },
+    {
+      "label": "round2_code/23_validation_auc_selection_uncertainty.py",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Code\\23_validation_auc_selection_uncertainty.py",
+      "exists": true,
+      "required": true,
+      "size_bytes": 5756
+    },
+    {
+      "label": "round2_code/31_conservative_predictor_sensitivity.py",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Code\\31_conservative_predictor_sensitivity.py",
+      "exists": true,
+      "required": true,
+      "size_bytes": 13488
+    },
+    {
+      "label": "round2_code/32_clustered_test_uncertainty_v2.py",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Code\\32_clustered_test_uncertainty_v2.py",
+      "exists": true,
+      "required": true,
+      "size_bytes": 12889
+    },
+    {
+      "label": "round2_code/33_subgroup_cluster_support_audit.py",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Code\\33_subgroup_cluster_support_audit.py",
+      "exists": true,
+      "required": true,
+      "size_bytes": 7307
+    },
+    {
+      "label": "round2_code/34_illustrative_governance_trigger_audit.py",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Round2_Manuscript_Results\\05_Reproducibility\\Code\\34_illustrative_governance_trigger_audit.py",
+      "exists": true,
+      "required": true,
+      "size_bytes": 7777
+    },
+    {
+      "label": "original_output/cell26_locked_feature_specification.csv",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell26_locked_feature_specification.csv",
+      "exists": true,
+      "required": true,
+      "size_bytes": 3442
+    },
+    {
+      "label": "original_output/cell26_feature_missingness.csv",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell26_feature_missingness.csv",
+      "exists": true,
+      "required": true,
+      "size_bytes": 3223
+    },
+    {
+      "label": "original_output/cell27_training_size_sensitivity.csv",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell27_training_size_sensitivity.csv",
+      "exists": true,
+      "required": true,
+      "size_bytes": 2158
+    },
+    {
+      "label": "original_output/cell27_y_val.npy",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell27_y_val.npy",
+      "exists": true,
+      "required": true,
+      "size_bytes": 219120
+    },
+    {
+      "label": "original_output/cell27_y_test.npy",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell27_y_test.npy",
+      "exists": true,
+      "required": true,
+      "size_bytes": 329288
+    },
+    {
+      "label": "original_output/cell27_1304058_Logistic_SGD_val_pred.npy",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell27_1304058_Logistic_SGD_val_pred.npy",
+      "exists": true,
+      "required": true,
+      "size_bytes": 219120
+    },
+    {
+      "label": "original_output/cell27_1304058_HistGB_val_pred.npy",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell27_1304058_HistGB_val_pred.npy",
+      "exists": true,
+      "required": true,
+      "size_bytes": 219120
+    },
+    {
+      "label": "original_output/cell27_1304058_MLP_val_pred.npy",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell27_1304058_MLP_val_pred.npy",
+      "exists": true,
+      "required": true,
+      "size_bytes": 109624
+    },
+    {
+      "label": "original_output/cell27_1304058_Logistic_SGD_test_pred.npy",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell27_1304058_Logistic_SGD_test_pred.npy",
+      "exists": true,
+      "required": true,
+      "size_bytes": 329288
+    },
+    {
+      "label": "original_output/cell27_1304058_HistGB_test_pred.npy",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell27_1304058_HistGB_test_pred.npy",
+      "exists": true,
+      "required": true,
+      "size_bytes": 329288
+    },
+    {
+      "label": "original_output/cell27_1304058_MLP_test_pred.npy",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell27_1304058_MLP_test_pred.npy",
+      "exists": true,
+      "required": true,
+      "size_bytes": 164708
+    },
+    {
+      "label": "original_output/cell28_paired_bootstrap_model_comparisons.csv",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell28_paired_bootstrap_model_comparisons.csv",
+      "exists": true,
+      "required": true,
+      "size_bytes": 1649
+    },
+    {
+      "label": "original_output/cell29_histgb_full_val_recalibrated.npy",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell29_histgb_full_val_recalibrated.npy",
+      "exists": true,
+      "required": true,
+      "size_bytes": 219120
+    },
+    {
+      "label": "original_output/cell29_histgb_full_test_recalibrated.npy",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell29_histgb_full_test_recalibrated.npy",
+      "exists": true,
+      "required": true,
+      "size_bytes": 329288
+    },
+    {
+      "label": "original_output/cell30_recalibrated_threshold_analysis.csv",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\revision_outputs\\cell30_recalibrated_threshold_analysis.csv",
+      "exists": true,
+      "required": true,
+      "size_bytes": 1170
+    },
+    {
+      "label": "original_dataset/P2P_Macro_Data.dta",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\P2P_Macro_Data.dta",
+      "exists": true,
+      "required": false,
+      "size_bytes": 3021680364
+    },
+    {
+      "label": "source/P2P_Macro_Codes.do",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\P2P_Macro_Codes.do",
+      "exists": true,
+      "required": false,
+      "size_bytes": 3862
+    },
+    {
+      "label": "source/Labels.do",
+      "path": "E:\\Governance-Policy\\Cogent Economics & Finance\\Labels.do",
+      "exists": true,
+      "required": false,
+      "size_bytes": 14861
+    }
+  ],
+  "counts": {
+    "round2_python": 17,
+    "round2_csv": 44,
+    "round2_txt": 14,
+    "source_prediction_arrays": 30
+  },
+  "missing_required": [],
+  "not_reproducibly_solved_by_this_audit": [
+    "outcome-dependent maturity selection",
+    "historical decision-time predictor provenance",
+    "original validation reuse",
+    "original software environment provenance",
+    "observed real-world human review and intervention costs",
+    "four-jurisdiction high-unemployment subgroup confounding",
+    "independent clean-environment end-to-end replay",
+    "prospective governance-control effectiveness"
+  ]
+}

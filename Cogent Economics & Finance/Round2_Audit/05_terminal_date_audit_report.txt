@@ -1,0 +1,48 @@
+ROUND 2 - REVIEWER 2 COMMENT 1
+Terminal-status timing audit
+
+Date generated: 2026-11-05 14:48:31.022281
+Dataset: E:\Governance-Policy\Cogent Economics & Finance\P2P_Macro_Data.dta
+Source records: 2,703,430
+Cutoff: 2020-04-01
+
+IMPORTANT METHODOLOGICAL NOTE:
+last_pymnt_d records the last payment month.
+It is NOT a verified terminal-event date.
+
+A payment after April 2020 is inconsistent
+with an April 2020 observation cutoff.
+
+A payment before April 2020 does NOT prove
+that final loan status was already known
+at the administrative cutoff.
+
+The Default status is included here to
+reproduce the published maturity rule.
+Its classification as terminal requires
+separate substantive justification.
+
+COHORT SUMMARY:
+    cohort  total_loans  terminal_status_loans  terminal_share_pct  adverse_terminal_n  adverse_terminal_pct  Before_April_2020  During_April_2020  After_April_2020  Missing_or_Unparsed  timing_count_check  expected_total  expected_mature expected_counts_match
+     Train      1931267                 874826           45.298035              169210             19.342132             873044                  0                 0                 1782                True             NaN              NaN                   NaN
+Validation       370994                  27374            7.378556                2771             10.122744              27003                  0                 0                  371                True        370994.0          27374.0                  True
+      Test       401169                  41145           10.256276                6025             14.643335              38182               2329                46                  588                True        401169.0          41145.0                  True
+
+DETAILED STATUS TABLE:
+    cohort loan_status last_payment_timing      n
+      Test Charged Off   Before_April_2020   5413
+      Test Charged Off   During_April_2020     21
+      Test Charged Off Missing_or_Unparsed    587
+      Test     Default   Before_April_2020      3
+      Test     Default Missing_or_Unparsed      1
+      Test  Fully Paid    After_April_2020     46
+      Test  Fully Paid   Before_April_2020  32766
+      Test  Fully Paid   During_April_2020   2308
+     Train Charged Off   Before_April_2020 167313
+     Train Charged Off Missing_or_Unparsed   1782
+     Train     Default   Before_April_2020    115
+     Train  Fully Paid   Before_April_2020 705616
+Validation Charged Off   Before_April_2020   2397
+Validation Charged Off Missing_or_Unparsed    371
+Validation     Default   Before_April_2020      3
+Validation  Fully Paid   Before_April_2020  24603

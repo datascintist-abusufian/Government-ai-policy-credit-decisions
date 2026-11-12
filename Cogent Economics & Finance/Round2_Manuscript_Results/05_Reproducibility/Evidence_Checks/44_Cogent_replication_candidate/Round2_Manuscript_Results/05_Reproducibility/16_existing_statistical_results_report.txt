@@ -1,0 +1,406 @@
+ROUND 2 - STEP 16
+Existing statistical results inspection
+
+Generated: 2026-11-05 17:34:35.650973
+Source: E:\Governance-Policy\Cogent Economics & Finance\revision_outputs
+
+CSV files inspected: 83
+NumPy arrays inspected: 30
+
+IMPORTANT:
+Successful file reading and matching array lengths
+do not prove that the statistical analyses are valid.
+
+========================================================================
+PRIORITY STATISTICAL RESULTS
+========================================================================
+
+------------------------------------------------------------------------
+cell27_training_size_sensitivity.csv
+------------------------------------------------------------------------
+Rows: 12
+Columns: 10
+Column names:
+training_n, model, train_event_rate, val_auc, test_auc, val_brier, test_brier, val_logloss, test_logloss, fit_seconds
+
+First 15 records:
+ training_n        model  train_event_rate  val_auc  test_auc  val_brier  test_brier  val_logloss  test_logloss  fit_seconds
+     180000 Logistic_SGD          0.137606 0.610769  0.646062   0.115454    0.157529     0.404037      0.515784    14.589826
+     180000       HistGB          0.137606 0.730790  0.697660   0.090720    0.134361     0.332236      0.500605    18.545871
+     180000          MLP          0.137606 0.705201  0.718945   0.094066    0.116114     0.326278      0.388663     8.365950
+     360000 Logistic_SGD          0.138378 0.647482  0.672210   0.103650    0.143379     0.360093      0.464525    16.576358
+     360000       HistGB          0.138378 0.711450  0.687550   0.092887    0.136763     0.354262      0.534415    34.041299
+     360000          MLP          0.138378 0.688848  0.700299   0.088037    0.123062     0.314885      0.440455    19.843975
+     540000 Logistic_SGD          0.138665 0.648545  0.665383   0.097266    0.135265     0.348769      0.454154    47.205704
+     540000       HistGB          0.138665 0.689989  0.674609   0.093935    0.136987     0.366264      0.542803    50.758279
+     540000          MLP          0.138665 0.724092  0.694318   0.085266    0.125322     0.306618      0.464142    29.383036
+    1304058 Logistic_SGD          0.138936 0.692605  0.699310   0.092567    0.129401     0.323932      0.420523    85.207094
+    1304058       HistGB          0.138936 0.696648  0.675016   0.093320    0.136718     0.355862      0.529232   122.897367
+    1304058          MLP          0.138936 0.693186  0.646276   0.088191    0.131485     0.327698      0.503209    84.868758
+
+------------------------------------------------------------------------
+cell27_training_size_deltas.csv
+------------------------------------------------------------------------
+Rows: 12
+Columns: 16
+Column names:
+training_n, model, train_event_rate, val_auc, test_auc, val_brier, test_brier, val_logloss, test_logloss, fit_seconds, auc_180k, brier_180k, logloss_180k, delta_auc_vs_180k, delta_brier_vs_180k, delta_logloss_vs_180k
+
+First 15 records:
+ training_n        model  train_event_rate  val_auc  test_auc  val_brier  test_brier  val_logloss  test_logloss  fit_seconds  auc_180k  brier_180k  logloss_180k  delta_auc_vs_180k  delta_brier_vs_180k  delta_logloss_vs_180k
+     180000 Logistic_SGD          0.137606 0.610769  0.646062   0.115454    0.157529     0.404037      0.515784    14.589826  0.646062    0.157529      0.515784           0.000000             0.000000               0.000000
+     180000       HistGB          0.137606 0.730790  0.697660   0.090720    0.134361     0.332236      0.500605    18.545871  0.697660    0.134361      0.500605           0.000000             0.000000               0.000000
+     180000          MLP          0.137606 0.705201  0.718945   0.094066    0.116114     0.326278      0.388663     8.365950  0.718945    0.116114      0.388663           0.000000             0.000000               0.000000
+     360000 Logistic_SGD          0.138378 0.647482  0.672210   0.103650    0.143379     0.360093      0.464525    16.576358  0.646062    0.157529      0.515784           0.026148            -0.014150              -0.051258
+     360000       HistGB          0.138378 0.711450  0.687550   0.092887    0.136763     0.354262      0.534415    34.041299  0.697660    0.134361      0.500605          -0.010110             0.002402               0.033810
+     360000          MLP          0.138378 0.688848  0.700299   0.088037    0.123062     0.314885      0.440455    19.843975  0.718945    0.116114      0.388663          -0.018646             0.006948               0.051793
+     540000 Logistic_SGD          0.138665 0.648545  0.665383   0.097266    0.135265     0.348769      0.454154    47.205704  0.646062    0.157529      0.515784           0.019321            -0.022264              -0.061629
+     540000       HistGB          0.138665 0.689989  0.674609   0.093935    0.136987     0.366264      0.542803    50.758279  0.697660    0.134361      0.500605          -0.023050             0.002626               0.042198
+     540000          MLP          0.138665 0.724092  0.694318   0.085266    0.125322     0.306618      0.464142    29.383036  0.718945    0.116114      0.388663          -0.024627             0.009208               0.075479
+    1304058 Logistic_SGD          0.138936 0.692605  0.699310   0.092567    0.129401     0.323932      0.420523    85.207094  0.646062    0.157529      0.515784           0.053248            -0.028128              -0.095261
+    1304058       HistGB          0.138936 0.696648  0.675016   0.093320    0.136718     0.355862      0.529232   122.897367  0.697660    0.134361      0.500605          -0.022644             0.002357               0.028627
+    1304058          MLP          0.138936 0.693186  0.646276   0.088191    0.131485     0.327698      0.503209    84.868758  0.718945    0.116114      0.388663          -0.072669             0.015371               0.114546
+
+------------------------------------------------------------------------
+cell28_paired_bootstrap_model_comparisons.csv
+------------------------------------------------------------------------
+Rows: 6
+Columns: 14
+Column names:
+training_n, model_A, model_B, auc_diff_A_minus_B, auc_ci_low, auc_ci_high, auc_bootstrap_p, brier_diff_A_minus_B, brier_ci_low, brier_ci_high, logloss_diff_A_minus_B, logloss_ci_low, logloss_ci_high, auc_difference_supported
+
+First 15 records:
+ training_n      model_A model_B  auc_diff_A_minus_B  auc_ci_low  auc_ci_high  auc_bootstrap_p  brier_diff_A_minus_B  brier_ci_low  brier_ci_high  logloss_diff_A_minus_B  logloss_ci_low  logloss_ci_high  auc_difference_supported
+     180000 Logistic_SGD  HistGB           -0.051598   -0.058733    -0.044642            0.001              0.023169      0.021359       0.024940                0.015179        0.008396         0.022033                      True
+     180000 Logistic_SGD     MLP           -0.072884   -0.078476    -0.067004            0.001              0.041416      0.039930       0.042882                0.127121        0.121657         0.132708                      True
+     180000       HistGB     MLP           -0.021285   -0.026512    -0.015920            0.001              0.018247      0.017338       0.019125                0.111942        0.108605         0.115127                      True
+    1304058 Logistic_SGD  HistGB            0.024294    0.018443     0.029721            0.001             -0.007317     -0.008425      -0.006187               -0.108709       -0.111552        -0.105821                      True
+    1304058 Logistic_SGD     MLP            0.053033    0.046031     0.059970            0.001             -0.002084     -0.003166      -0.001016               -0.082686       -0.086373        -0.078829                      True
+    1304058       HistGB     MLP            0.028740    0.021313     0.036020            0.001              0.005233      0.004834       0.005623                0.026023        0.022273         0.029606                      True
+
+------------------------------------------------------------------------
+cell28_test_performance_point_estimates.csv
+------------------------------------------------------------------------
+Rows: 6
+Columns: 5
+Column names:
+training_n, model, auc, brier, logloss
+
+First 15 records:
+ training_n        model      auc    brier  logloss
+     180000 Logistic_SGD 0.646062 0.157529 0.515784
+     180000       HistGB 0.697660 0.134361 0.500605
+     180000          MLP 0.718945 0.116114 0.388663
+    1304058 Logistic_SGD 0.699310 0.129401 0.420523
+    1304058       HistGB 0.675016 0.136718 0.529232
+    1304058          MLP 0.646276 0.131485 0.503209
+
+------------------------------------------------------------------------
+cell29_before_after_calibration.csv
+------------------------------------------------------------------------
+Rows: 4
+Columns: 11
+Column names:
+cohort, stage, n, event_rate, mean_prediction, auc, brier, logloss, ece, calibration_intercept, calibration_slope
+
+First 15 records:
+    cohort  stage     n  event_rate  mean_prediction      auc    brier  logloss      ece  calibration_intercept  calibration_slope
+Validation Before 27374    0.101227         0.032020 0.696648 0.093320 0.355862 0.069230               1.445016           1.056969
+Validation  After 27374    0.101227         0.101225 0.696648 0.086502 0.304759 0.002905               0.000162           1.000037
+      Test Before 41145    0.146433         0.027694 0.675016 0.136718 0.529232 0.118783               1.581336           0.922334
+      Test  After 41145    0.146433         0.088197 0.675016 0.123161 0.412280 0.058325               0.319362           0.872164
+
+------------------------------------------------------------------------
+cell29_test_calibration_change.csv
+------------------------------------------------------------------------
+Rows: 1
+Columns: 9
+Column names:
+delta_mean_prediction, delta_auc, delta_brier, delta_logloss, delta_ece, intercept_before, intercept_after, slope_before, slope_after
+
+First 15 records:
+ delta_mean_prediction  delta_auc  delta_brier  delta_logloss  delta_ece  intercept_before  intercept_after  slope_before  slope_after
+              0.060503        0.0    -0.013557      -0.116952  -0.060457          1.581336         0.319362      0.922334     0.872164
+
+------------------------------------------------------------------------
+cell30_recalibrated_threshold_analysis.csv
+------------------------------------------------------------------------
+Rows: 6
+Columns: 17
+Column names:
+fn_fp_ratio, fn_cost, fp_cost, threshold, threshold_selected_on, cohort, tp, fp, tn, fn, fnr, tpr, review_rate, precision, cost, no_review_cost, net_benefit
+
+First 15 records:
+fn_fp_ratio  fn_cost  fp_cost  threshold threshold_selected_on     cohort   tp    fp    tn   fn      fnr      tpr  review_rate  precision    cost  no_review_cost  net_benefit
+        5:1        5      1.0   0.172966            Validation Validation  829  2640 21963 1942 0.700830 0.299170     0.126726   0.238974 12350.0           13855       1505.0
+        5:1        5      1.0   0.172966            Validation       Test  943  2244 32876 5082 0.843485 0.156515     0.077458   0.295890 27654.0           30125       2471.0
+       10:1       10      1.0   0.096162            Validation Validation 2023 10995 13608  748 0.269939 0.730061     0.475561   0.155400 18475.0           27710       9235.0
+       10:1       10      1.0   0.096162            Validation       Test 3533 11909 23211 2492 0.413610 0.586390     0.375307   0.228792 36829.0           60250      23421.0
+       20:1       20      1.0   0.032698            Validation Validation 2694 21023  3580   77 0.027788 0.972212     0.866406   0.113589 22563.0           55420      32857.0
+       20:1       20      1.0   0.032698            Validation       Test 5730 29266  5854  295 0.048963 0.951037     0.850553   0.163733 35166.0          120500      85334.0
+
+------------------------------------------------------------------------
+cell30_recalibrated_test_operating_points.csv
+------------------------------------------------------------------------
+Rows: 3
+Columns: 17
+Column names:
+fn_fp_ratio, fn_cost, fp_cost, threshold, threshold_selected_on, cohort, tp, fp, tn, fn, fnr, tpr, review_rate, precision, cost, no_review_cost, net_benefit
+
+First 15 records:
+fn_fp_ratio  fn_cost  fp_cost  threshold threshold_selected_on cohort   tp    fp    tn   fn      fnr      tpr  review_rate  precision    cost  no_review_cost  net_benefit
+        5:1        5      1.0   0.172966            Validation   Test  943  2244 32876 5082 0.843485 0.156515     0.077458   0.295890 27654.0           30125       2471.0
+       10:1       10      1.0   0.096162            Validation   Test 3533 11909 23211 2492 0.413610 0.586390     0.375307   0.228792 36829.0           60250      23421.0
+       20:1       20      1.0   0.032698            Validation   Test 5730 29266  5854  295 0.048963 0.951037     0.850553   0.163733 35166.0          120500      85334.0
+
+------------------------------------------------------------------------
+cell31A_490_threshold_audit.csv
+------------------------------------------------------------------------
+Rows: 4
+Columns: 4
+Column names:
+variable, threshold, stress_n, stress_pct
+
+First 15 records:
+    variable  threshold  stress_n  stress_pct
+unemployment      4.900     41145  100.000000
+unemployment      0.049     41145  100.000000
+   unem_rate      4.900         0    0.000000
+   unem_rate      0.049       641    1.557905
+
+------------------------------------------------------------------------
+cell31A_geographic_stress_summary.csv
+------------------------------------------------------------------------
+Rows: 50
+Columns: 8
+Column names:
+addr_state, n, unemployment_mean, unemployment_min, unemployment_max, unem_rate_mean, unem_rate_min, unem_rate_max
+
+First 15 records:
+addr_state    n  unemployment_mean  unemployment_min  unemployment_max  unem_rate_mean  unem_rate_min  unem_rate_max
+        CA 5774          814209.00          814209.0          814209.0           0.042          0.042          0.042
+        TX 3313          557779.00          557779.0          557779.0           0.040          0.040          0.040
+        FL 3098          386820.00          386820.0          386820.0           0.038          0.038          0.038
+        NY 2755          430439.97          430440.0          430440.0           0.045          0.045          0.045
+        IL 1408          275721.00          275721.0          275721.0           0.043          0.043          0.043
+        NJ 1405          191754.00          191754.0          191754.0           0.043          0.043          0.043
+        GA 1355          210639.00          210639.0          210639.0           0.041          0.041          0.041
+        PA 1304          275252.00          275252.0          275252.0           0.043          0.043          0.043
+        OH 1277          259380.00          259380.0          259380.0           0.045          0.045          0.045
+        NC 1242          209577.00          209577.0          209577.0           0.042          0.042          0.042
+        AZ 1126          157018.00          157018.0          157018.0           0.047          0.047          0.047
+        VA 1101          137704.00          137704.0          137704.0           0.032          0.032          0.032
+        MI 1067          218516.00          218516.0          218516.0           0.044          0.044          0.044
+        WA 1030          176664.00          176664.0          176664.0           0.047          0.047          0.047
+        MA  992          133409.00          133409.0          133409.0           0.035          0.035          0.035
+
+------------------------------------------------------------------------
+cell31B_supported_slice_results.csv
+------------------------------------------------------------------------
+Rows: 8
+Columns: 14
+Column names:
+grade, term, regime, n, defaults, tp, fp, tn, fn, fnr, fnr_ci_low, fnr_ci_high, review_rate, precision
+
+First 15 records:
+grade      term            regime    n  defaults  tp   fp   tn  fn      fnr  fnr_ci_low  fnr_ci_high  review_rate  precision
+    C 36 months       Other-state 6411      1182 803 2660 2569 379 0.320643    0.294654     0.347794     0.540165   0.231880
+    C 36 months High-unemployment  110        21  11   34   55  10 0.476190    0.283440     0.676305     0.409091   0.244444
+    C 60 months       Other-state 3390       670 546 1822  898 124 0.185075    0.157493     0.216247     0.698525   0.230574
+    C 60 months High-unemployment   58        11   7   25   22   4 0.363636    0.151665     0.646199     0.551724   0.218750
+    D 36 months       Other-state 5118      1204 687 1658 2256 517 0.429402    0.401710     0.457543     0.458187   0.292964
+    D 36 months High-unemployment   85        12   3   17   56   9 0.750000    0.467695     0.911058     0.235294   0.150000
+    D 60 months       Other-state 2947       764 589 1415  768 175 0.229058    0.200659     0.260167     0.680014   0.293912
+    D 60 months High-unemployment   56        11   4   20   25   7 0.636364    0.353801     0.848335     0.428571   0.166667
+
+------------------------------------------------------------------------
+cell31B_unemployment_group_performance.csv
+------------------------------------------------------------------------
+Rows: 2
+Columns: 18
+Column names:
+group, n, defaults, nondefaults, default_rate, mean_prediction, brier, logloss, ece, auc, auc_ci_low, auc_ci_high, brier_ci_low, brier_ci_high, logloss_ci_low, logloss_ci_high, ece_ci_low, ece_ci_high
+
+First 15 records:
+            group     n  defaults  nondefaults  default_rate  mean_prediction    brier  logloss      ece      auc  auc_ci_low  auc_ci_high  brier_ci_low  brier_ci_high  logloss_ci_low  logloss_ci_high  ece_ci_low  ece_ci_high
+      Other-state 40504      5951        34553      0.146924         0.088364 0.123521 0.413233 0.058650 0.675232    0.668787     0.682363      0.123098       0.123890        0.410842          0.41538    0.058124     0.059295
+High-unemployment   641        74          567      0.115445         0.077638 0.100383 0.352064 0.037806 0.636136    0.573308     0.697319      0.097968       0.102638        0.338551          0.36495    0.035017     0.051240
+
+------------------------------------------------------------------------
+cell31B_unemployment_threshold_performance.csv
+------------------------------------------------------------------------
+Rows: 2
+Columns: 12
+Column names:
+group, n, defaults, tp, fp, tn, fn, fnr, fnr_ci_low, fnr_ci_high, review_rate, precision
+
+First 15 records:
+            group     n  defaults   tp    fp    tn   fn      fnr  fnr_ci_low  fnr_ci_high  review_rate  precision
+      Other-state 40504      5951 3503 11766 22787 2448 0.411359    0.398918     0.423915     0.376975   0.229419
+High-unemployment   641        74   30   143   424   44 0.594595    0.480758     0.699094     0.269891   0.173410
+
+------------------------------------------------------------------------
+cell31B_high_unemployment_slice_support.csv
+------------------------------------------------------------------------
+Rows: 11
+Columns: 6
+Column names:
+grade, term, regime, n, defaults, nondefaults
+
+First 15 records:
+grade      term            regime   n  defaults  nondefaults
+    C 36 months High-unemployment 110        21           89
+    D 36 months High-unemployment  85        12           73
+    C 60 months High-unemployment  58        11           47
+    D 60 months High-unemployment  56        11           45
+    A 36 months High-unemployment 154         7          147
+    B 60 months High-unemployment  49         6           43
+    B 36 months High-unemployment 119         5          114
+    A 60 months High-unemployment  10         1            9
+    E 36 months High-unemployment   0         0            0
+    E 60 months High-unemployment   0         0            0
+    F 36 months High-unemployment   0         0            0
+
+------------------------------------------------------------------------
+cell19_overall_cif_horizons.csv
+------------------------------------------------------------------------
+Rows: 7
+Columns: 5
+Column names:
+horizon_months, risk_set_at_last_observed_month, survival, cif_chargeoff, cif_fullypaid
+
+First 15 records:
+ horizon_months  risk_set_at_last_observed_month  survival  cif_chargeoff  cif_fullypaid
+              6                          2081403  0.918914       0.016093       0.064993
+             12                          1092889  0.814891       0.041301       0.143808
+             18                           637032  0.688002       0.074998       0.237000
+             24                           522416  0.560940       0.106141       0.332919
+             36                           221142  0.183299       0.141911       0.674790
+             48                            17820  0.088451       0.149502       0.762047
+             60                               21  0.067008       0.150039       0.782953
+
+------------------------------------------------------------------------
+cell21_overall_horizon_ci.csv
+------------------------------------------------------------------------
+Rows: 5
+Columns: 9
+Column names:
+group, horizon_months, risk_set, cif_chargeoff, chargeoff_ci_low, chargeoff_ci_high, cif_fullypaid, fullypaid_ci_low, fullypaid_ci_high
+
+First 15 records:
+  group  horizon_months  risk_set  cif_chargeoff  chargeoff_ci_low  chargeoff_ci_high  cif_fullypaid  fullypaid_ci_low  fullypaid_ci_high
+Overall               6   2081403       0.016093          0.015935           0.016251       0.064993          0.064680           0.065306
+Overall              12   1092889       0.041301          0.041010           0.041592       0.143808          0.143277           0.144338
+Overall              18    637032       0.074998          0.074534           0.075463       0.237000          0.236202           0.237798
+Overall              24    522416       0.106141          0.105551           0.106731       0.332919          0.331901           0.333937
+Overall              36    221142       0.141911          0.141187           0.142635       0.674790          0.673232           0.676348
+
+------------------------------------------------------------------------
+cell22_bootstrap_cif_summary.csv
+------------------------------------------------------------------------
+Rows: 3
+Columns: 7
+Column names:
+horizon_months, original_cif, bootstrap_mean, bootstrap_sd, bootstrap_ci_low, bootstrap_ci_high, n_boot
+
+First 15 records:
+ horizon_months  original_cif  bootstrap_mean  bootstrap_sd  bootstrap_ci_low  bootstrap_ci_high  n_boot
+             12      0.041301        0.041333      0.000149          0.041041           0.041599     100
+             24      0.106141        0.106164      0.000294          0.105662           0.106689     100
+             36      0.141911        0.141932      0.000354          0.141281           0.142640     100
+
+------------------------------------------------------------------------
+cell24_suspicious_candidate_features.csv
+------------------------------------------------------------------------
+Rows: 21
+Columns: 5
+Column names:
+column, dtype, category, missing_pct_sample, nunique_sample
+
+First 15 records:
+                     column   dtype          category  missing_pct_sample  nunique_sample
+        verification_status  object CANDIDATE_FEATURE                0.00               3
+                delinq_2yrs    int8 CANDIDATE_FEATURE                0.00              13
+             inq_last_6mths    int8 CANDIDATE_FEATURE                0.00               7
+     mths_since_last_delinq float64 CANDIDATE_FEATURE               52.04              86
+     mths_since_last_record float64 CANDIDATE_FEATURE               92.02              96
+                  revol_bal   int32 CANDIDATE_FEATURE                0.00            4675
+        initial_list_status  object CANDIDATE_FEATURE                0.00               2
+ collections_12_mths_ex_med    int8 CANDIDATE_FEATURE                0.00               3
+mths_since_last_major_derog float64 CANDIDATE_FEATURE               78.38              94
+  verification_status_joint float64 CANDIDATE_FEATURE              100.00               0
+             acc_now_delinq    int8 CANDIDATE_FEATURE                0.00               2
+                tot_cur_bal   int32 CANDIDATE_FEATURE                0.00            4948
+               total_bal_il float64 CANDIDATE_FEATURE               39.86            2658
+               inq_last_12m float64 CANDIDATE_FEATURE               39.86              18
+                avg_cur_bal   int32 CANDIDATE_FEATURE                0.00            4617
+
+------------------------------------------------------------------------
+cell26_locked_feature_specification.csv
+------------------------------------------------------------------------
+Rows: 153
+Columns: 2
+Column names:
+feature, type
+
+First 15 records:
+            feature        type
+          loan_amnt     numeric
+        funded_amnt     numeric
+    funded_amnt_inv     numeric
+               term categorical
+           int_rate     numeric
+        installment     numeric
+              grade categorical
+          sub_grade categorical
+          emp_title categorical
+         emp_length categorical
+     home_ownership categorical
+         annual_inc     numeric
+verification_status categorical
+               desc categorical
+            purpose categorical
+
+========================================================================
+SAVED PREDICTION ARRAY INTEGRITY
+========================================================================
+
+                                 filename    shape   dtype  observations  expected_observations dimension_check
+      cell27_1304058_HistGB_test_pred.npy (41145,) float64         41145                  41145            PASS
+       cell27_1304058_HistGB_val_pred.npy (27374,) float64         27374                  27374            PASS
+cell27_1304058_Logistic_SGD_test_pred.npy (41145,) float64         41145                  41145            PASS
+ cell27_1304058_Logistic_SGD_val_pred.npy (27374,) float64         27374                  27374            PASS
+         cell27_1304058_MLP_test_pred.npy (41145,) float32         41145                  41145            PASS
+          cell27_1304058_MLP_val_pred.npy (27374,) float32         27374                  27374            PASS
+       cell27_180000_HistGB_test_pred.npy (41145,) float64         41145                  41145            PASS
+        cell27_180000_HistGB_val_pred.npy (27374,) float64         27374                  27374            PASS
+ cell27_180000_Logistic_SGD_test_pred.npy (41145,) float64         41145                  41145            PASS
+  cell27_180000_Logistic_SGD_val_pred.npy (27374,) float64         27374                  27374            PASS
+          cell27_180000_MLP_test_pred.npy (41145,) float32         41145                  41145            PASS
+           cell27_180000_MLP_val_pred.npy (27374,) float32         27374                  27374            PASS
+       cell27_360000_HistGB_test_pred.npy (41145,) float64         41145                  41145            PASS
+        cell27_360000_HistGB_val_pred.npy (27374,) float64         27374                  27374            PASS
+ cell27_360000_Logistic_SGD_test_pred.npy (41145,) float64         41145                  41145            PASS
+  cell27_360000_Logistic_SGD_val_pred.npy (27374,) float64         27374                  27374            PASS
+          cell27_360000_MLP_test_pred.npy (41145,) float32         41145                  41145            PASS
+           cell27_360000_MLP_val_pred.npy (27374,) float32         27374                  27374            PASS
+       cell27_540000_HistGB_test_pred.npy (41145,) float64         41145                  41145            PASS
+        cell27_540000_HistGB_val_pred.npy (27374,) float64         27374                  27374            PASS
+ cell27_540000_Logistic_SGD_test_pred.npy (41145,) float64         41145                  41145            PASS
+  cell27_540000_Logistic_SGD_val_pred.npy (27374,) float64         27374                  27374            PASS
+          cell27_540000_MLP_test_pred.npy (41145,) float32         41145                  41145            PASS
+           cell27_540000_MLP_val_pred.npy (27374,) float32         27374                  27374            PASS
+                        cell27_y_test.npy (41145,)   int64         41145                  41145            PASS
+                         cell27_y_val.npy (27374,)   int64         27374                  27374            PASS
+          cell29_histgb_full_test_raw.npy (41145,) float64         41145                  41145            PASS
+ cell29_histgb_full_test_recalibrated.npy (41145,) float64         41145                  41145            PASS
+           cell29_histgb_full_val_raw.npy (27374,) float64         27374                  27374            PASS
+  cell29_histgb_full_val_recalibrated.npy (27374,) float64         27374                  27374            PASS
+
+========================================================================
+NEXT ACTION
+========================================================================
+
+Review statistical content against Reviewer 2.
+Identify missing or methodologically inadequate
+experiments before running additional models.

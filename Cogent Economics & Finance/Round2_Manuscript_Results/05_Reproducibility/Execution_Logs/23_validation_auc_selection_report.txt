@@ -1,0 +1,26 @@
+ROUND 2 | REVIEWER 2 COMMENT 4 | VALIDATION AUC SELECTION UNCERTAINTY
+Python: 3.14.7; NumPy: 2.5.2; pandas: 2.3.3
+Only existing original model predictions were read. No classifier was trained.
+Validation N: 27374; adverse: 2771; nonadverse: 24603
+Paired stratified bootstrap B=2000, sampling seed=20261105
+
+VALIDATION AUCS:
+HistGB: 0.69664825
+MLP: 0.69318551
+Logistic_SGD: 0.69260454
+
+PAIRED VALIDATION CONTRASTS:
+    cohort  full_training_n  model_seed model_a      model_b  n_validation  n_adverse  auc_model_a  auc_model_b  auc_difference_a_minus_b  bootstrap_ci_2p5  bootstrap_ci_97p5  ci_includes_zero  bootstrap_replicates  bootstrap_seed
+validation          1304058          42  HistGB          MLP         27374       2771     0.696648     0.693186                  0.003463         -0.004777           0.011918              True                  2000        20261105
+validation          1304058          42  HistGB Logistic_SGD         27374       2771     0.696648     0.692605                  0.004044         -0.003713           0.012025              True                  2000        20261105
+
+LIMITATIONS:
+1) These intervals use the SAME validation loans that were used to choose HistGB.
+2) They assess pairwise AUC uncertainty, not post-selection performance optimism.
+3) They do not account for loan-level dependence within months, states or borrowers.
+4) They do not resolve using validation data for selection, recalibration and thresholds.
+5) A CI containing zero does not prove two models are equivalent.
+6) These are unadjusted percentile intervals; no multiplicity-adjusted claim is made.
+7) No test labels or test AUCs were used in this comparison.
+
+Saved: E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\23_validation_auc_selection_uncertainty.csv

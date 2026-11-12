@@ -1,0 +1,16 @@
+artifact,local_exists,local_path,archive_contains_matching_filename
+Original Stata dataset,True,E:\Governance-Policy\Cogent Economics & Finance\P2P_Macro_Data.dta,False
+Main modelling notebook,True,E:\Governance-Policy\Cogent Economics & Finance\Economic and Finance.ipynb,True
+Original analysis notebook,True,E:\Governance-Policy\Cogent Economics & Finance\Fintech_5_11_2026.ipynb,True
+Stata feature construction,True,E:\Governance-Policy\Cogent Economics & Finance\P2P_Macro_Codes.do,True
+Stata label construction,True,E:\Governance-Policy\Cogent Economics & Finance\Labels.do,True
+Original feature manifest,True,E:\Governance-Policy\Cogent Economics & Finance\revision_outputs\cell26_locked_feature_specification.csv,True
+Original training sensitivity,True,E:\Governance-Policy\Cogent Economics & Finance\revision_outputs\cell27_training_size_sensitivity.csv,True
+Original model comparisons,True,E:\Governance-Policy\Cogent Economics & Finance\revision_outputs\cell28_test_performance_point_estimates.csv,True
+Original calibration results,True,E:\Governance-Policy\Cogent Economics & Finance\revision_outputs\cell29_before_after_calibration.csv,True
+Original validation labels,True,E:\Governance-Policy\Cogent Economics & Finance\revision_outputs\cell27_y_val.npy,True
+Original test labels,True,E:\Governance-Policy\Cogent Economics & Finance\revision_outputs\cell27_y_test.npy,True
+145-feature sensitivity,True,E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\57_145_feature_quarantine_sensitivity.csv,False
+Outcome-selection summary,True,E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\58_outcome_selection_summary.csv,False
+Population balance,True,E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\59_selected_vs_excluded_numeric_balance.csv,False
+Corrected dependency register,True,E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\05_Reproducibility\Evidence_Checks\56_corrected_payment_history_dependency_register.csv,False

@@ -1,0 +1,7 @@
+﻿"Measure","Count","ShareOfMatureTrainingPct","Interpretation"
+"Mature training cohort","1304058","100","Original mature training cohort"
+"Terminal-status training loans","874826","67.0849","Selected through terminal status"
+"Nonterminal mature training loans","429232","32.9151","Qualified through contractual age only"
+"2014 Current, 36-month","43228","3.3149","Current, badloan=0, contractually eligible"
+"2016 Current, 36-month","268313","20.5752","Current, badloan=0, contractually eligible"
+"Combined 2014 and 2016 Current","311541","23.8901","Potential incomplete-outcome exposure"

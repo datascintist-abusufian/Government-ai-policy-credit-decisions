@@ -1,0 +1,13 @@
+training_n,model,test_n,recomputed_auc,reported_auc,absolute_difference,recomputed_brier,pass,archived_prediction_file
+180000,HistGB,41145,0.6976596281628371,0.69766,3.7183716283806234e-07,0.13436062002936694,True,44_Cogent_replication_candidate/revision_outputs/cell27_180000_HistGB_test_pred.npy
+180000,Logistic_SGD,41145,0.6460615695800527,0.646062,4.3041994735038003e-07,0.15752948757796165,True,44_Cogent_replication_candidate/revision_outputs/cell27_180000_Logistic_SGD_test_pred.npy
+180000,MLP,41145,0.7189450987249406,0.718945,9.872494066698323e-08,0.11611396074295044,True,44_Cogent_replication_candidate/revision_outputs/cell27_180000_MLP_test_pred.npy
+360000,HistGB,41145,0.6875497310938667,0.68755,2.689061332494802e-07,0.1367630166522813,True,44_Cogent_replication_candidate/revision_outputs/cell27_360000_HistGB_test_pred.npy
+360000,Logistic_SGD,41145,0.6722100657851209,0.67221,6.578512090626987e-08,0.14337930902165674,True,44_Cogent_replication_candidate/revision_outputs/cell27_360000_Logistic_SGD_test_pred.npy
+360000,MLP,41145,0.7002988780612294,0.700299,1.2193877063637615e-07,0.12306232750415802,True,44_Cogent_replication_candidate/revision_outputs/cell27_360000_MLP_test_pred.npy
+540000,HistGB,41145,0.6746094197487689,0.674609,4.1974876885397805e-07,0.1369867965845512,True,44_Cogent_replication_candidate/revision_outputs/cell27_540000_HistGB_test_pred.npy
+540000,Logistic_SGD,41145,0.6653830140171457,0.665383,1.4017145777422968e-08,0.13526525351300545,True,44_Cogent_replication_candidate/revision_outputs/cell27_540000_Logistic_SGD_test_pred.npy
+540000,MLP,41145,0.6943180724770555,0.694318,7.247705546831185e-08,0.12532176077365875,True,44_Cogent_replication_candidate/revision_outputs/cell27_540000_MLP_test_pred.npy
+1304058,HistGB,41145,0.6750159831378368,0.675016,1.6862163110253903e-08,0.13671793716892172,True,44_Cogent_replication_candidate/revision_outputs/cell27_1304058_HistGB_test_pred.npy
+1304058,Logistic_SGD,41145,0.6993098068034669,0.69931,1.9319653310478913e-07,0.12940111273402727,True,44_Cogent_replication_candidate/revision_outputs/cell27_1304058_Logistic_SGD_test_pred.npy
+1304058,MLP,41145,0.6462764227450165,0.646276,4.2274501654837593e-07,0.13148489594459534,True,44_Cogent_replication_candidate/revision_outputs/cell27_1304058_MLP_test_pred.npy

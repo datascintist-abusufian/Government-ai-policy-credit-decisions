@@ -1,0 +1,83 @@
+STEP 59 POPULATION REPRESENTATIVENESS AUDIT
+
+Selected vs excluded loan characteristics.
+SMD compares group means using their pooled standard deviation.
+
+    cohort     feature  selected_n  excluded_n  selected_mean  excluded_mean   selected_sd   excluded_sd  standardized_mean_difference  absolute_smd  selected_missing_percent  excluded_missing_percent
+validation   loan_amnt       27374      343620   14469.625374   16366.479760  10002.260667  10194.871906                     -0.187825      0.187825                       0.0                       0.0
+validation  annual_inc       27374      343620   84135.524745   82696.263697  97964.385308  99463.032576                      0.014580      0.014580                       0.0                       0.0
+validation         dti       27374      343620      18.672368      20.187713     21.110676     20.339479                     -0.073104      0.073104                       0.0                       0.0
+validation    int_rate       27374      343620       0.138742       0.127891      0.056197      0.050613                      0.202923      0.202923                       0.0                       0.0
+validation installment       27374      343620     435.523493     474.176975    290.449012    287.088242                     -0.133854      0.133854                       0.0                       0.0
+      test   loan_amnt       41145      360024   14465.685381   16625.589266   9967.352263  10370.390727                     -0.212362      0.212362                       0.0                       0.0
+      test  annual_inc       41145      360024   86555.819876   85722.989853 100880.471902 106558.104706                      0.008027      0.008027                       0.0                       0.0
+      test         dti       41145      360024      19.419721      21.039642     17.925656     20.278199                     -0.084644      0.084644                       0.0                       0.0
+      test    int_rate       41145      360024       0.136461       0.128354      0.053972      0.049512                      0.156550      0.156550                       0.0                       0.0
+      test installment       41145      360024     433.997136     478.218419    289.676909    290.394628                     -0.152468      0.152468                       0.0                       0.0
+
+CATEGORICAL DIFFERENCES
+    cohort             feature           category  selected_count  excluded_count  selected_percent  excluded_percent  percentage_point_difference
+validation               grade                  A            6786          105383         24.789947         30.668471                    -5.878524
+validation               grade                  B            7090           96344         25.900490         28.037949                    -2.137459
+validation               grade                  C            6825           82692         24.932418         24.064955                     0.867462
+validation               grade                  D            4605           45094         16.822532         13.123218                     3.699315
+validation               grade                  E            1702           12505          6.217579          3.639194                     2.578384
+validation               grade                  F             279            1307          1.019215          0.380362                     0.638853
+validation               grade                  G              87             295          0.317820          0.085851                     0.231969
+validation                term          36 months           20348          235003         74.333309         68.390373                     5.942936
+validation                term          60 months            7026          108617         25.666691         31.609627                    -5.942936
+validation             purpose                car             353            2744          1.289545          0.798557                     0.490988
+validation             purpose        credit_card            5944           95890         21.714035         27.905826                    -6.191791
+validation             purpose debt_consolidation           14600          188949         53.335282         54.987777                    -1.652496
+validation             purpose   home_improvement            2101           19984          7.675166          5.815727                     1.859440
+validation             purpose              house             335            1991          1.223789          0.579419                     0.644370
+validation             purpose     major_purchase             730            5794          2.666764          1.686165                     0.980599
+validation             purpose            medical             412            3792          1.505078          1.103545                     0.401533
+validation             purpose             moving             244            1743          0.891357          0.507246                     0.384110
+validation             purpose              other            2123           17689          7.755534          5.147838                     2.607697
+validation             purpose   renewable_energy              27             172          0.098634          0.050055                     0.048578
+validation             purpose     small_business             233            2819          0.851173          0.820383                     0.030790
+validation             purpose           vacation             272            2053          0.993644          0.597462                     0.396181
+validation      home_ownership                ANY              59            1227          0.215533          0.357080                    -0.141548
+validation      home_ownership           MORTGAGE           14460          169091         52.823847         49.208719                     3.615129
+validation      home_ownership               NONE               0               1          0.000000          0.000291                    -0.000291
+validation      home_ownership                OWN            3373           38836         12.321911         11.302020                     1.019892
+validation      home_ownership               RENT            9482          134465         34.638708         39.131890                    -4.493182
+validation verification_status       Not Verified           11154          151236         40.746694         44.012572                    -3.265878
+validation verification_status    Source Verified           10953          133004         40.012421         38.706711                     1.305710
+validation verification_status           Verified            5267           59380         19.240886         17.280717                     1.960168
+      test               grade                  A           11643          116669         28.297485         32.405895                    -4.108411
+      test               grade                  B           11314          106595         27.497873         29.607748                    -2.109875
+      test               grade                  C            9969           84791         24.228946         23.551485                     0.677461
+      test               grade                  D            8206           51944         19.944100         14.427927                     5.516173
+      test               grade                  E              11              22          0.026735          0.006111                     0.020624
+      test               grade                  F               2               3          0.004861          0.000833                     0.004028
+      test                term          36 months           30561          239707         74.276340         66.580839                     7.695501
+      test                term          60 months           10584          120317         25.723660         33.419161                    -7.695501
+      test             purpose                car             515            2996          1.251671          0.832167                     0.419504
+      test             purpose        credit_card            8958           98370         21.771783         27.323178                    -5.551396
+      test             purpose debt_consolidation           21938          195538         53.318751         54.312490                    -0.993740
+      test             purpose   home_improvement            3248           21885          7.894033          6.078761                     1.815272
+      test             purpose              house             572            3195          1.390205          0.887441                     0.502765
+      test             purpose     major_purchase            1041            6218          2.530077          1.727107                     0.802969
+      test             purpose            medical             611            4029          1.484992          1.119092                     0.365900
+      test             purpose             moving             378            1867          0.918702          0.518577                     0.400126
+      test             purpose              other            3105           20471          7.546482          5.686010                     1.860472
+      test             purpose   renewable_energy              22             173          0.053469          0.048052                     0.005417
+      test             purpose     small_business             288            2666          0.699964          0.740506                    -0.040543
+      test             purpose           vacation             469            2616          1.139871          0.726618                     0.413253
+      test      home_ownership                ANY             288            1316          0.699964          0.365531                     0.334432
+      test      home_ownership           MORTGAGE           21351          173174         51.892089         48.100682                     3.791407
+      test      home_ownership                OWN            5061           42733         12.300401         11.869486                     0.430915
+      test      home_ownership               RENT           14445          142801         35.107546         39.664300                    -4.556754
+      test verification_status       Not Verified           19752          179522         48.005833         49.863898                    -1.858065
+      test verification_status    Source Verified           16689          140425         40.561429         39.004344                     1.557085
+      test verification_status           Verified            4704           40077         11.432738         11.131758                     0.300980
+
+LIMITATIONS
+These are unadjusted descriptive comparisons.
+They do not adjust for origination month.
+They do not establish causal selection effects.
+They do not recover missing future outcomes.
+They cannot produce an unbiased estimate of population-wide default risk.
+Some descriptive predictors may not have been available at an application decision.

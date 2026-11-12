@@ -1,0 +1,46 @@
+ROUND 2 | REVIEWER 2 COMMENT 5 | CONSERVATIVE PREDICTOR SENSITIVITY
+Python 3.14.7 NumPy 2.5.2 pandas 2.3.3 sklearn 1.9.0
+Original Stata dataset and revision_outputs are read only.
+Original features: 150 | Conservative candidate features: 77 | Excluded: 73
+Numerical: 71 | Categorical: 6
+Important: candidate is not certified leakage-free; decision-stage availability must still be documented.
+Excluded names: funded_amnt, funded_amnt_inv, int_rate, installment, grade, sub_grade, verification_status, zip_code, addr_state, initial_list_status, region, subregion, earnings, employment, labor_force, Muni, muni_m, FEDFUNDS, internetuser, internetuserprop, empl_exp_prop, empl_expan, empl_birth, empl_birth_per, new_bus, new_bus_per, popestimate, dem, rep, red, christianity, religiousity, unemployment, unem_rate, gdpindex, gdpreal, gdpcontrib, cpi, cpiregion, inf, gdppercap, des_length, logfunded_amnt, logearnings, logemployment, loglabor_force, logfinanceuser, logsocialnetworkuser, loginternetuser, logempl_expan, logempl_birth, lognew_bus, logpopestimate, logunemployment, loggdppercap, state, muni_points, muni_6m, inf_6m, loan_vol, median_dummy, quarter, month, year, CPIUS, logCPIUS, infUS, logloan_vol, FED_lag6, riskprem, loan_vol6m, loglvol_6m, issue_year
+Reconstructing source cohorts using original file order and maturity rule...
+ Scanned 200,000 source rows
+ Scanned 400,000 source rows
+ Scanned 600,000 source rows
+ Scanned 800,000 source rows
+ Scanned 1,000,000 source rows
+ Scanned 1,200,000 source rows
+ Scanned 1,400,000 source rows
+ Scanned 1,600,000 source rows
+ Scanned 1,800,000 source rows
+ Scanned 2,000,000 source rows
+ Scanned 2,200,000 source rows
+ Scanned 2,400,000 source rows
+ Scanned 2,600,000 source rows
+ Scanned 2,703,430 source rows
+train n= 1304058 adverse share= 0.138936
+val n= 27374 adverse share= 0.101227
+test n= 41145 adverse share= 0.146433
+PASS: Labels and sample order match original 150-feature prediction arrays.
+Fitting preprocessor on full mature training cohort; preserves original preprocessor sampling convention...
+Conservative transformed input dimensions: 159
+
+CONSERVATIVE FEATURE SET | Train n= 180,000 | seed=42
+Logistic_SGD test AUC 0.622867 vs original 0.646062 | test Brier 0.128628 vs original 0.157529
+HistGB test AUC 0.672835 vs original 0.697660 | test Brier 0.120095 vs original 0.134361
+MLP test AUC 0.660499 vs original 0.718945 | test Brier 0.122855 vs original 0.116114
+
+CONSERVATIVE FEATURE SET | Train n= 1,304,058 | seed=42
+Logistic_SGD test AUC 0.645344 vs original 0.699310 | test Brier 0.124274 vs original 0.129401
+HistGB test AUC 0.682980 vs original 0.675016 | test Brier 0.119098 vs original 0.136718
+MLP test AUC 0.676072 vs original 0.646276 | test Brier 0.119879 vs original 0.131485
+
+IMPORTANT LIMITATIONS:
+- Retained features are candidates, NOT independently timestamp-verified application features.
+- Baseline 150-feature predictions are reused; only conservative models are refitted.
+- Seed 42 only; fixed hyperparameters; original full-cohort fitted preprocessing convention.
+- The outcomes and selected mature evaluation cohort are unchanged and may be selection biased.
+- Removing features does not identify which variable caused a performance difference.
+Saved: E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\31_conservative_predictor_sensitivity.csv E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\31_conservative_feature_manifest.csv E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\05_Reproducibility\Execution_Logs\31_conservative_predictor_sensitivity_report.txt

@@ -1,0 +1,76 @@
+ROUND 2 - REVIEWER 2 COMMENT 6
+Brier-score baseline verification
+
+Generated: 2026-11-05 17:42:47.244581
+NumPy version: 2.5.2
+Pandas version: 2.3.3
+
+PRIMARY BASELINE:
+Constant probability equal to each
+model's training-sample adverse rate.
+
+SECONDARY BASELINE:
+Constant validation-cohort adverse rate.
+
+ORACLE BASELINE:
+Constant observed cohort adverse rate.
+The test-cohort version uses test outcomes.
+It is descriptive and not a deployable forecast.
+
+BRIER SKILL SCORE:
+1 - model_brier / baseline_brier
+
+TEST RESULTS:
+ training_n        model  model_brier  training_prevalence_baseline_brier  bss_vs_training_prevalence  beats_training_prevalence_baseline
+     180000       HistGB     0.134361                            0.125069                   -0.074296                               False
+     180000 Logistic_SGD     0.157529                            0.125069                   -0.259545                               False
+     180000          MLP     0.116114                            0.125069                    0.071597                                True
+     360000       HistGB     0.136763                            0.125056                   -0.093618                               False
+     360000 Logistic_SGD     0.143379                            0.125056                   -0.146525                               False
+     360000          MLP     0.123062                            0.125056                    0.015938                                True
+     540000       HistGB     0.136987                            0.125051                   -0.095448                               False
+     540000 Logistic_SGD     0.135265                            0.125051                   -0.081681                               False
+     540000          MLP     0.125322                            0.125051                   -0.002165                               False
+    1304058       HistGB     0.136718                            0.125047                   -0.093334                               False
+    1304058 Logistic_SGD     0.129401                            0.125047                   -0.034821                               False
+    1304058          MLP     0.131485                            0.125047                   -0.051485                               False
+
+RECALIBRATED HISTGB:
+                   model  training_n     cohort     n  recalibrated_brier  reported_recalibrated_brier  reported_brier_verified  training_prevalence_baseline_brier  validation_prevalence_baseline_brier  oracle_cohort_prevalence_baseline_brier  bss_vs_training_prevalence  bss_vs_validation_prevalence  bss_vs_oracle_prevalence  beats_training_prevalence_baseline
+HistGB_Full_Recalibrated     1304058 Validation 27374            0.086502                     0.086502                     True                            0.092402                              0.090980                                 0.090980                    0.063857                      0.049225                  0.049225                                True
+HistGB_Full_Recalibrated     1304058       Test 41145            0.123161                     0.123161                     True                            0.125047                              0.127034                                 0.124991                    0.015082                      0.030490                  0.014639                                True
+
+ORIGINAL SCORE VERIFICATION:
+ training_n        model     cohort  recalculated_brier  reported_brier  absolute_difference  verification_pass
+     180000 Logistic_SGD Validation            0.115454        0.115454         4.163336e-17               True
+     180000 Logistic_SGD       Test            0.157529        0.157529         5.551115e-17               True
+     180000       HistGB Validation            0.090720        0.090720         2.775558e-17               True
+     180000       HistGB       Test            0.134361        0.134361         2.775558e-17               True
+     180000          MLP Validation            0.094066        0.094066         1.051765e-08               True
+     180000          MLP       Test            0.116114        0.116114         7.336835e-10               True
+     360000 Logistic_SGD Validation            0.103650        0.103650         1.387779e-17               True
+     360000 Logistic_SGD       Test            0.143379        0.143379         2.775558e-17               True
+     360000       HistGB Validation            0.092887        0.092887         8.326673e-17               True
+     360000       HistGB       Test            0.136763        0.136763         0.000000e+00               True
+     360000          MLP Validation            0.088037        0.088037         2.796581e-09               True
+     360000          MLP       Test            0.123062        0.123062         7.115092e-10               True
+     540000 Logistic_SGD Validation            0.097266        0.097266         8.326673e-17               True
+     540000 Logistic_SGD       Test            0.135265        0.135265         5.551115e-17               True
+     540000       HistGB Validation            0.093935        0.093935         1.387779e-17               True
+     540000       HistGB       Test            0.136987        0.136987         0.000000e+00               True
+     540000          MLP Validation            0.085266        0.085266         1.177338e-08               True
+     540000          MLP       Test            0.125322        0.125322         2.787774e-09               True
+    1304058 Logistic_SGD Validation            0.092567        0.092567         1.387779e-17               True
+    1304058 Logistic_SGD       Test            0.129401        0.129401         5.551115e-17               True
+    1304058       HistGB Validation            0.093320        0.093320         5.551115e-17               True
+    1304058       HistGB       Test            0.136718        0.136718         2.775558e-17               True
+    1304058          MLP Validation            0.088191        0.088191         1.294719e-10               True
+    1304058          MLP       Test            0.131485        0.131485         5.749268e-09               True
+
+ALL VERIFICATION CHECKS:
+PASS
+
+IMPORTANT LIMITATION:
+These results apply to the original
+outcome-selected evaluation cohorts.
+They do not resolve maturity-selection bias.

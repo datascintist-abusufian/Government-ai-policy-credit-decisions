@@ -1,0 +1,141 @@
+﻿============================================
+COHORT AND OUTCOME-MATURITY CONSTRUCTION
+============================================
+Notebook cell: 27
+Matching lines: 50
+Cell 27, Line 10: #   5. Apply the already-verified maturity definition.
+Cell 27, Line 98: "loan_status",
+Cell 27, Line 100: "badloan"
+Cell 27, Line 125: df_model["issue_date_clean"] = pd.to_datetime(
+Cell 27, Line 134: int(df_model["issue_date_clean"].isna().sum()))
+Cell 27, Line 138: df_model["issue_date_clean"].min(),
+Cell 27, Line 140: df_model["issue_date_clean"].max()
+Cell 27, Line 168: # G. Reconstruct maturity rule
+Cell 27, Line 171: # Mature if:
+Cell 27, Line 172: #   terminal status {Fully Paid, Charged Off, Default}
+Cell 27, Line 176: # diagnostic follow-up cutoff that reproduced exactly:
+Cell 27, Line 183: FOLLOWUP_CUTOFF = pd.Timestamp("2020-04-01")
+Cell 27, Line 185: terminal_statuses = {
+Cell 27, Line 192: (FOLLOWUP_CUTOFF.year -
+Cell 27, Line 193: df_model["issue_date_clean"].dt.year) * 12
+Cell 27, Line 195: (FOLLOWUP_CUTOFF.month -
+Cell 27, Line 196: df_model["issue_date_clean"].dt.month)
+Cell 27, Line 199: df_model["months_followup_to_cutoff"] = months_followup
+Cell 27, Line 201: df_model["terminal_status"] = (
+Cell 27, Line 202: df_model["loan_status"]
+Cell 27, Line 205: .isin(terminal_statuses)
+Cell 27, Line 209: df_model["months_followup_to_cutoff"]
+Cell 27, Line 214: df_model["mature_reconstructed"] = (
+Cell 27, Line 215: df_model["terminal_status"]
+Cell 27, Line 229: d = df_model["issue_date_clean"]
+Cell 27, Line 264: s["mature_reconstructed"]
+Cell 27, Line 270: "mature_n": len(m),
+Cell 27, Line 271: "mature_pct":
+Cell 27, Line 274: "all_badloan_rate":
+Cell 27, Line 275: s["badloan"].mean(),
+Cell 27, Line 276: "mature_badloan_rate":
+Cell 27, Line 277: m["badloan"].mean()
+Cell 27, Line 293: "mature_pct": "{:.4f}".format,
+Cell 27, Line 294: "all_badloan_rate": "{:.6f}".format,
+Cell 27, Line 295: "mature_badloan_rate": "{:.6f}".format
+Cell 27, Line 305: val_mature_n = int(
+Cell 27, Line 308: "mature_n"
+Cell 27, Line 312: test_mature_n = int(
+Cell 27, Line 315: "mature_n"
+Cell 27, Line 324: "Validation mature:",
+Cell 27, Line 325: val_mature_n,
+Cell 27, Line 327: "MATCH" if val_mature_n == 27374 else "DOES NOT MATCH"
+Cell 27, Line 331: "Test mature:",
+Cell 27, Line 332: test_mature_n,
+Cell 27, Line 334: "MATCH" if test_mature_n == 41145 else "DOES NOT MATCH"
+Cell 27, Line 371: # L. Missingness in mature modelling cohorts
+Cell 27, Line 374: mature_model = df_model[
+Cell 27, Line 377: (df_model["mature_reconstructed"])
+Cell 27, Line 381: mature_model[model_features]
+Cell 27, Line 391: print("\nTop 20 missing features in mature modelling cohorts:")
+
+============================================
+EXACT FEATURE SPECIFICATION
+============================================
+Notebook cell: 27
+Matching lines: 17
+Cell 27, Line 59: model_features = [
+Cell 27, Line 70: print("Remaining model features:", len(model_features))
+Cell 27, Line 105: COHORT_COLS + model_features
+Cell 27, Line 342: X_probe = df_model[model_features]
+Cell 27, Line 344: categorical_features = (
+Cell 27, Line 353: numeric_features = [
+Cell 27, Line 354: c for c in model_features
+Cell 27, Line 355: if c not in categorical_features
+Cell 27, Line 362: print("Total model features:", len(model_features))
+Cell 27, Line 363: print("Numeric:", len(numeric_features))
+Cell 27, Line 364: print("Categorical:", len(categorical_features))
+Cell 27, Line 367: print(categorical_features)
+Cell 27, Line 381: mature_model[model_features]
+Cell 27, Line 413: "feature": model_features,
+Cell 27, Line 416: if c in categorical_features
+Cell 27, Line 418: for c in model_features
+Cell 27, Line 422: "cell26_locked_feature_specification.csv",
+
+============================================
+PREPROCESSING AND FEATURE TRANSFORMATION
+============================================
+Notebook cell: 28
+Matching lines: 15
+Cell 28, Line 29: from sklearn.compose import ColumnTransformer
+Cell 28, Line 31: OneHotEncoder,
+Cell 28, Line 32: StandardScaler
+Cell 28, Line 34: from sklearn.impute import SimpleImputer
+Cell 28, Line 185: SimpleImputer(strategy="median")
+Cell 28, Line 189: StandardScaler()
+Cell 28, Line 196: SimpleImputer(
+Cell 28, Line 202: OneHotEncoder(
+Cell 28, Line 210: preprocessor = ColumnTransformer(
+Cell 28, Line 232: print("C. FITTING PREPROCESSOR")
+Cell 28, Line 237: preprocessor.fit(
+Cell 28, Line 242: "Preprocessor fitted in",
+Cell 28, Line 254: X_val = preprocessor.transform(
+Cell 28, Line 258: X_test = preprocessor.transform(
+Cell 28, Line 371: X_train = preprocessor.transform(
+
+============================================
+MODEL TRAINING CONFIGURATION
+============================================
+Notebook cell: 28
+Matching lines: 14
+Cell 28, Line 37: from sklearn.linear_model import SGDClassifier
+Cell 28, Line 38: from sklearn.ensemble import HistGradientBoostingClassifier
+Cell 28, Line 39: from sklearn.neural_network import MLPClassifier
+Cell 28, Line 309: SGDClassifier(
+Cell 28, Line 313: max_iter=100,
+Cell 28, Line 315: random_state=42,
+Cell 28, Line 320: HistGradientBoostingClassifier(
+Cell 28, Line 322: learning_rate=0.05,
+Cell 28, Line 323: max_iter=300,
+Cell 28, Line 324: random_state=42
+Cell 28, Line 328: MLPClassifier(
+Cell 28, Line 332: max_iter=50,
+Cell 28, Line 333: early_stopping=True,
+Cell 28, Line 336: random_state=42
+
+============================================
+TRAINING SAMPLE SELECTION
+============================================
+Notebook cell: 28
+Matching lines: 15
+Cell 28, Line 279: # A single deterministic permutation ensures:
+Cell 28, Line 285: rng = np.random.default_rng(
+Cell 28, Line 289: permutation = rng.permutation(
+Cell 28, Line 294: 180_000,
+Cell 28, Line 295: 360_000,
+Cell 28, Line 296: 540_000,
+Cell 28, Line 354: for n_train in training_sizes:
+Cell 28, Line 359: f"{n_train:,}"
+Cell 28, Line 363: idx = permutation[:n_train]
+Cell 28, Line 452: "training_n": n_train,
+Cell 28, Line 473: (n_train, model_name)
+Cell 28, Line 547: == 180_000
+Cell 28, Line 664: for (n_train, model_name), preds in prediction_store_27.items():
+Cell 28, Line 673: f"cell27_{n_train}_{safe_model}_val_pred.npy",
+Cell 28, Line 679: f"cell27_{n_train}_{safe_model}_test_pred.npy",
+

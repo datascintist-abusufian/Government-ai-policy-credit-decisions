@@ -1,0 +1,43 @@
+﻿ROUND 2 - REVIEWER 2 COMMENT 1
+Terminal-status timing breakdown
+
+Generated: 2026-11-05 14:55:24
+
+IMPORTANT:
+Last-payment timing is not terminal-event timing.
+These results do not establish when final status
+was first observed.
+
+ALL STATUS-TIMING COMBINATIONS:
+
+Cohort     LoanStatus  PaymentTiming           N PercentOfSelectedCohort
+------     ----------  -------------           - -----------------------
+Test       Charged Off Before_April_2020    5413                 13.1559
+Test       Charged Off During_April_2020      21                   0.051
+Test       Charged Off Missing_or_Unparsed   587                  1.4267
+Test       Default     Before_April_2020       3                  0.0073
+Test       Default     Missing_or_Unparsed     1                  0.0024
+Test       Fully Paid  After_April_2020       46                  0.1118
+Test       Fully Paid  Before_April_2020   32766                 79.6354
+Test       Fully Paid  During_April_2020    2308                  5.6094
+Validation Charged Off Before_April_2020    2397                  8.7565
+Validation Charged Off Missing_or_Unparsed   371                  1.3553
+Validation Default     Before_April_2020       3                   0.011
+Validation Fully Paid  Before_April_2020   24603                 89.8773
+
+
+
+
+RECORDS REQUIRING FURTHER INVESTIGATION:
+
+Cohort     LoanStatus  PaymentTiming          N PercentOfSelectedCohort
+------     ----------  -------------          - -----------------------
+Test       Charged Off During_April_2020     21                   0.051
+Test       Charged Off Missing_or_Unparsed  587                  1.4267
+Test       Default     Missing_or_Unparsed    1                  0.0024
+Test       Fully Paid  After_April_2020      46                  0.1118
+Test       Fully Paid  During_April_2020   2308                  5.6094
+Validation Charged Off Missing_or_Unparsed  371                  1.3553
+
+
+

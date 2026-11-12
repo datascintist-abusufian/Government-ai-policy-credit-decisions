@@ -1,0 +1,27 @@
+issue_year,loan_status,label,n
+2012,Charged Off,Adverse,2717
+2012,Fully Paid,Non_adverse,18193
+2013,Charged Off,Adverse,12359
+2013,Default,Adverse,2
+2013,Fully Paid,Non_adverse,87904
+2013,In Grace Period,Non_adverse,1
+2013,Late (31-120 days),Adverse,3
+2014,Charged Off,Adverse,19841
+2014,Current,Non_adverse,43228
+2014,Default,Adverse,15
+2014,Fully Paid,Non_adverse,97037
+2014,In Grace Period,Non_adverse,785
+2014,Late (16-30 days),Adverse,278
+2014,Late (31-120 days),Adverse,1324
+2015,Charged Off,Adverse,42160
+2015,Current,Non_adverse,12
+2015,Fully Paid,Non_adverse,240924
+2015,In Grace Period,Non_adverse,1
+2015,Late (31-120 days),Adverse,11
+2016,Charged Off,Adverse,7531
+2016,Current,Non_adverse,268313
+2016,Default,Adverse,48
+2016,Fully Paid,Non_adverse,37890
+2016,In Grace Period,Non_adverse,3003
+2016,Late (16-30 days),Adverse,1240
+2016,Late (31-120 days),Adverse,5302

@@ -1,0 +1,30 @@
+STEP 58 OUTCOME-SELECTION AUDIT
+
+    cohort  all_issued_loans  terminal_selected_loans  excluded_loans  selection_percent  selected_badloan_percent
+validation            370994                    27374          343620           7.378556                 10.122744
+      test            401169                    41145          360024          10.256276                 14.643335
+
+    cohort issue_month  all_issued_loans  terminal_selected_loans  excluded_loans  selected_fraction  selected_badloan_fraction
+      test     2019-04             43810                     7736           36074           0.176581                   0.206696
+      test     2019-05             45375                     6937           38438           0.152882                   0.188987
+      test     2019-06             41512                     5623           35889           0.135455                   0.168415
+      test     2019-07             50357                     5922           44435           0.117600                   0.144715
+      test     2019-08             47417                     4651           42766           0.098087                   0.121694
+      test     2019-09             44783                     3552           41231           0.079316                   0.098536
+      test     2019-10             45889                     2960           42929           0.064503                   0.088176
+      test     2019-11             40146                     2016           38130           0.050217                   0.047123
+      test     2019-12             41880                     1748           40132           0.041738                   0.022311
+validation     2018-07             42912                     6030           36882           0.140520                   0.155058
+validation     2018-08             45905                     5285           40620           0.115129                   0.127909
+validation     2018-09             38894                     3775           35119           0.097059                   0.120000
+validation     2018-10             46151                     3614           42537           0.078308                   0.092418
+validation     2018-11             41840                     2779           39061           0.066420                   0.069090
+validation     2018-12             40010                     2206           37804           0.055136                   0.037625
+validation     2019-01             43433                     1801           41632           0.041466                   0.014436
+validation     2019-02             35865                     1096           34769           0.030559                   0.052920
+validation     2019-03             35984                      788           35196           0.021899                   0.017766
+
+LIMITATIONS
+Recorded terminal statuses are used as the selection indicator. This does not establish when each terminal outcome occurred or whether the recorded status was known at the stated follow-up cutoff.
+The selected badloan fraction is not a fixed-horizon default probability.
+Selection differences are descriptive and do not themselves identify or remove selection bias.

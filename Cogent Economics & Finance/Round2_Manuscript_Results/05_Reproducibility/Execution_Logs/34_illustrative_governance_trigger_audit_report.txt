@@ -1,0 +1,32 @@
+ROUND 2 | REVIEWER 2 COMMENT 9 | ILLUSTRATIVE RETROSPECTIVE GOVERNANCE ALERT AUDIT
+Python 3.14.7, NumPy 2.5.2, pandas 2.3.3
+This is an EXAMPLE of rule firing, NOT proof that the rule or actions work.
+Original source and predictions are read-only; no models are trained.
+EXAMPLE TOLERANCES (NOT REGULATORY/INSTITUTIONAL LIMITS):
+  Maturity share >= 50%
+  Absolute mean calibration gap <= 2%
+  False-negative rate <= 25%
+  Flag rate <= 40%
+
+VALIDATION | selected=27,374 / all=370,994 | observed=10.1227% | mean predicted=10.1225% | observed-minus-predicted=0.0003%
+  5:1 | FNR=70.08% | flagged=12.67% | cost=12,350 | best trivial proxy=13,855 | example alerts: maturity_breach, fnr_breach
+  10:1 | FNR=26.99% | flagged=47.56% | cost=18,475 | best trivial proxy=24,603 | example alerts: maturity_breach, fnr_breach, flag_capacity_breach
+  20:1 | FNR=2.78% | flagged=86.64% | cost=22,563 | best trivial proxy=24,603 | example alerts: maturity_breach, flag_capacity_breach
+
+TEST | selected=41,145 / all=401,169 | observed=14.6433% | mean predicted=8.8197% | observed-minus-predicted=5.8236%
+  5:1 | FNR=84.35% | flagged=7.75% | cost=27,654 | best trivial proxy=30,125 | example alerts: maturity_breach, calibration_breach, fnr_breach
+  10:1 | FNR=41.36% | flagged=37.53% | cost=36,829 | best trivial proxy=35,120 | example alerts: maturity_breach, calibration_breach, fnr_breach, classification_cost_exceeds_best_trivial_proxy
+  20:1 | FNR=4.90% | flagged=85.06% | cost=35,166 | best trivial proxy=35,120 | example alerts: maturity_breach, calibration_breach, flag_capacity_breach, classification_cost_exceeds_best_trivial_proxy
+
+LIMITATIONS AND INTERPRETATION:
+- Example limits are deliberately illustrative; no lender approved them.
+- This is a two-window, retrospective calculation, not a deployed governance experiment.
+- The validation cohort was reused for selection/recalibration/threshold fitting.
+- Maturity selection is outcome-dependent; alert rates do not generalise to all originations.
+- The classification-cost proxy does not include effective human review or staffing capacity.
+- The audit does not measure whether escalation, recalibration, or suspension improves outcomes.
+- Fitted-predictor timing and protected-group fairness remain unverified.
+- No causal, regulatory-compliance, or operational-performance claim is supported.
+Saved: E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\34_illustrative_governance_trigger_audit.csv
+Saved: E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\05_Reproducibility\Execution_Logs\34_illustrative_governance_trigger_audit_report.txt
+STEP 34 COMPLETE: example alerts only, no original files changed.

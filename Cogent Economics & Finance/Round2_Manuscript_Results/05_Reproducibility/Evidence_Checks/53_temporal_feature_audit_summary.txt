@@ -1,0 +1,31 @@
+STEP 53 TEMPORAL FEATURE AUDIT
+
+total_rows: 2703430
+valid_date_pairs: 2703430
+different_issue_last_month: 2687953
+year_eligible: 2703430
+year_matches_issue: 522809
+year_matches_last: 2703430
+year_different_eligible: 2687953
+year_different_matches_issue: 507332
+year_different_matches_last: 2687953
+month_eligible: 2703430
+month_matches_issue: 270558
+month_matches_last: 2703430
+month_different_eligible: 2687953
+month_different_matches_issue: 255081
+month_different_matches_last: 2687953
+quarter_eligible: 2703430
+quarter_matches_issue: 640694
+quarter_matches_last: 2703430
+quarter_different_eligible: 2687953
+quarter_different_matches_issue: 625217
+quarter_different_matches_last: 2687953
+
+AVAILABLE COLUMNS
+issue_date, last_date, last_pymnt_d, year, month, quarter, loan_vol, median_dummy, loan_vol6m, loglvol_6m, badloan
+
+MISSING COLUMNS
+
+
+This is a source-data consistency audit. It does not independently certify the exact historical feature-generation procedure.

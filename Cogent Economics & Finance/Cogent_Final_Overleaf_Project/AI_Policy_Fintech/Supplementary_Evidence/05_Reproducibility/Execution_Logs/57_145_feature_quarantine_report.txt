@@ -1,0 +1,46 @@
+ROUND 2 | REVIEWER 2 COMMENT 5 | CONSERVATIVE PREDICTOR SENSITIVITY
+Python 3.14.7 NumPy 2.5.2 pandas 2.3.3 sklearn 1.9.0
+Original Stata dataset and revision_outputs are read only.
+Original features: 150 | Conservative candidate features: 145 | Excluded: 5
+Numerical: 131 | Categorical: 14
+Important: candidate is not certified leakage-free; decision-stage availability must still be documented.
+Excluded names: loan_vol, median_dummy, quarter, month, year
+Reconstructing source cohorts using original file order and maturity rule...
+ Scanned 200,000 source rows
+ Scanned 400,000 source rows
+ Scanned 600,000 source rows
+ Scanned 800,000 source rows
+ Scanned 1,000,000 source rows
+ Scanned 1,200,000 source rows
+ Scanned 1,400,000 source rows
+ Scanned 1,600,000 source rows
+ Scanned 1,800,000 source rows
+ Scanned 2,000,000 source rows
+ Scanned 2,200,000 source rows
+ Scanned 2,400,000 source rows
+ Scanned 2,600,000 source rows
+ Scanned 2,703,430 source rows
+train n= 1304058 adverse share= 0.138936
+val n= 27374 adverse share= 0.101227
+test n= 41145 adverse share= 0.146433
+PASS: Labels and sample order match original 150-feature prediction arrays.
+Fitting preprocessor on full mature training cohort; preserves original preprocessor sampling convention...
+Conservative transformed input dimensions: 379
+
+145-FEATURE LEAKAGE QUARANTINE | Train n= 180,000 | seed=42
+Logistic_SGD test AUC 0.672799 vs original 0.646062 | test Brier 0.153947 vs original 0.157529
+HistGB test AUC 0.690201 vs original 0.697660 | test Brier 0.136246 vs original 0.134361
+MLP test AUC 0.713197 vs original 0.718945 | test Brier 0.116768 vs original 0.116114
+
+145-FEATURE LEAKAGE QUARANTINE | Train n= 1,304,058 | seed=42
+Logistic_SGD test AUC 0.713556 vs original 0.699310 | test Brier 0.128201 vs original 0.129401
+HistGB test AUC 0.696918 vs original 0.675016 | test Brier 0.137308 vs original 0.136718
+MLP test AUC 0.651989 vs original 0.646276 | test Brier 0.133686 vs original 0.131485
+
+IMPORTANT LIMITATIONS:
+- Retained features are candidates, NOT independently timestamp-verified application features.
+- Baseline 150-feature predictions are reused; only conservative models are refitted.
+- Seed 42 only; fixed hyperparameters; original full-cohort fitted preprocessing convention.
+- The outcomes and selected mature evaluation cohort are unchanged and may be selection biased.
+- Removing features does not identify which variable caused a performance difference.
+Saved: E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\57_145_feature_quarantine_sensitivity.csv E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\57_145_feature_quarantine_manifest.csv E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\05_Reproducibility\Execution_Logs\57_145_feature_quarantine_report.txt

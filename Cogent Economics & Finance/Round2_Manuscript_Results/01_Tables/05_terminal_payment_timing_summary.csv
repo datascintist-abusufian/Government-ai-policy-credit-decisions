@@ -1,0 +1,4 @@
+cohort,total_loans,terminal_status_loans,terminal_share_pct,adverse_terminal_n,adverse_terminal_pct,Before_April_2020,During_April_2020,After_April_2020,Missing_or_Unparsed,timing_count_check,expected_total,expected_mature,expected_counts_match
+Train,1931267,874826,45.298034916974196,169210,19.34213203539904,873044,0,0,1782,True,,,
+Validation,370994,27374,7.378555987428368,2771,10.12274420983415,27003,0,0,371,True,370994.0,27374.0,True
+Test,401169,41145,10.256276033292702,6025,14.643334548547818,38182,2329,46,588,True,401169.0,41145.0,True

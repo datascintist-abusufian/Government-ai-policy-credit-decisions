@@ -1,0 +1,79 @@
+ROUND 2 - REVIEWER 2 COMMENT 1
+Event-date variable availability audit
+
+Dataset: E:\Governance-Policy\Cogent Economics & Finance\P2P_Macro_Data.dta
+Total variables: 195
+Candidate variables: 65
+
+IMPORTANT:
+Column names alone do not establish whether
+a variable contains a genuine event date.
+
+CANDIDATE VARIABLES:
+
+                   column_name      data_type                                                                   variable_label
+                   funded_amnt          int32                   The total amount committed to that loan at that point in time.
+               funded_amnt_inv        float64     The total amount committed by investors for that loan at that point in time.
+                          term         object The number of payments on the loan. Values are in months and can be either 36 or
+                   installment        float32                 The monthly payment owed by the borrower if the loan originates.
+                home_ownership         object The home ownership status provided by the borrower during registration or obtain
+           verification_status         object Indicates if income was verified by LC, not verified, or if the income source wa
+                       issue_d         object                                              The month which the loan was funded
+                   loan_status         object                                                       Current status of the loan
+                    pymnt_plan         object                   Indicates if a payment plan has been put in place for the loan
+                           dti        float32 A ratio calculated using the borrower’s total monthly debt payments on the total
+                   delinq_2yrs           int8 The number of 30+ days past-due incidences of delinquency in the borrower's cred
+              earliest_cr_line         object                The month the borrower's earliest reported credit line was opened
+                inq_last_6mths           int8 The number of inquiries in past 6 months (excluding auto and mortgage inquiries)
+        mths_since_last_delinq          int16                      The number of months since the borrower's last delinquency.
+        mths_since_last_record        float64                               The number of months since the last public record.
+           initial_list_status         object               The initial listing status of the loan. Possible values are – W, F
+                   total_pymnt        float32                                Payments received to date for total amount funded
+               total_pymnt_inv        float32        Payments received to date for portion of total amount funded by investors
+               total_rec_prncp        float32                                                       Principal received to date
+                 total_rec_int        float32                                                        Interest received to date
+            total_rec_late_fee        float32                                                       Late fees received to date
+                    recoveries        float32                                                   post charge off gross recovery
+       collection_recovery_fee        float32                                                   post charge off collection fee
+                  last_pymnt_d         object                                                  Last month payment was received
+               last_pymnt_amnt        float32                                               Last total payment amount received
+                  next_pymnt_d         object                                                      Next scheduled payment date
+            last_credit_pull_d         object                             The most recent month LC pulled credit for this loan
+    collections_12_mths_ex_med           int8                 Number of collections in 12 months excluding medical collections
+   mths_since_last_major_derog        float64                                  Months since most recent 90-day or worse rating
+                     dti_joint        float32 A ratio calculated using the co-borrowers' total monthly payments on the total d
+     verification_status_joint        float64                                                                                 
+                acc_now_delinq           int8                  The number of accounts on which the borrower is now delinquent.
+                   open_acc_6m        float64                                           Number of open trades in last 6 months
+                  inq_last_12m        float64                                     Number of credit inquiries in past 12 months
+          acc_open_past_24mths           int8                                       Number of trades opened in past 24 months.
+      chargeoff_within_12_mths           int8                                           Number of charge-offs within 12 months
+                   delinq_amnt          int32 The past-due amount owed for the accounts on which the borrower is now delinquen
+            mo_sin_old_il_acct          int16                              Months since oldest bank installment account opened
+          mo_sin_old_rev_tl_op          int16                                     Months since oldest revolving account opened
+         mo_sin_rcnt_rev_tl_op          int16                                Months since most recent revolving account opened
+                mo_sin_rcnt_tl          int16                                          Months since most recent account opened
+          mths_since_recent_bc          int16                                Months since most recent bankcard account opened.
+      mths_since_recent_bc_dlq          int16                                    Months since most recent bankcard delinquency
+         mths_since_recent_inq           int8                                                Months since most recent inquiry.
+mths_since_recent_revol_delinq          int16                                  Months since most recent revolving delinquency.
+              num_tl_120dpd_2m           int8        Number of accounts currently 120 days past due (updated in past 2 months)
+                  num_tl_30dpd           int8         Number of accounts currently 30 days past due (updated in past 2 months)
+            num_tl_90g_dpd_24m           int8                    Number of accounts 90 or more days past due in last 24 months
+            num_tl_op_past_12m           int8                                      Number of accounts opened in past 12 months
+                pct_tl_nvr_dlq        float32                                               Percent of trades never delinquent
+           sec_app_open_act_il        float64  Number of currently active installment trades at time of application for the se
+                    issue_date datetime64[ns]                                                                                 
+                     last_date datetime64[ns]                                                                                 
+          initial_list_status_          int32               The initial listing status of the loan. Possible values are – W, F
+                   pymnt_plan_          int32                   Indicates if a payment plan has been put in place for the loan
+          verification_status_          int32 Indicates if income was verified by LC, not verified, or if the income source wa
+               home_ownership_          int32 The home ownership status provided by the borrower during registration or obtain
+                         term_          int32 The number of payments on the loan. Values are in months and can be either 36 or
+                  loan_status_         object                                                                                 
+              rankloan_status_          int32                                                               ranked loan status
+                    daily_date datetime64[ns]                                                                                 
+                         month        float32                                                                                 
+                 loan_status_5          int32                                  RECODE of rankloan_status_ (ranked loan status)
+                   issue_daily datetime64[ns]                                                                                 
+                    issue_year        float32                                                                                 

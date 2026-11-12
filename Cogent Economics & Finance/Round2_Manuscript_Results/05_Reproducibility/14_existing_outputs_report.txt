@@ -1,0 +1,138 @@
+ROUND 2 - STEP 14
+Existing statistical output inventory
+
+Generated: 2026-11-05 17:28:30.868015
+Project: E:\Governance-Policy\Cogent Economics & Finance
+
+Total files inventoried: 154
+Potential reviewer evidence matches: 118
+
+IMPORTANT:
+This inventory checks filenames and metadata only.
+A matching filename does NOT prove that an analysis
+is correct, complete or suitable for publication.
+
+=================================================================
+FILES BY SOURCE
+=================================================================
+Round1_Results: 113
+Round2_Audit: 23
+Round2_Results: 18
+
+=================================================================
+FILES BY TYPE
+=================================================================
+.csv: 106
+.npy: 30
+.py: 7
+.txt: 11
+
+=================================================================
+POTENTIAL EVIDENCE BY REVIEW TOPIC
+=================================================================
+
+01_Outcome_Maturity: 27 candidate matches
+  revision_outputs\05_maturity_reconstruction.csv
+  revision_outputs\07_maturity_rule_comparison.csv
+  revision_outputs\cell14_terminal_missing_last_payment.csv
+  revision_outputs\cell16_candidate_snapshots.csv
+  revision_outputs\cell16_snapshot_by_status.csv
+  revision_outputs\cell26_feature_missingness.csv
+  revision_outputs\cell26_locked_feature_specification.csv
+  revision_outputs\cell26_revised_cohort_audit.csv
+  ... and 19 additional matches
+
+02_Review_All: 0 candidate matches
+
+03_Multiple_Seeds: 28 candidate matches
+  revision_outputs\cell27_1304058_HistGB_test_pred.npy
+  revision_outputs\cell27_1304058_HistGB_val_pred.npy
+  revision_outputs\cell27_1304058_Logistic_SGD_test_pred.npy
+  revision_outputs\cell27_1304058_Logistic_SGD_val_pred.npy
+  revision_outputs\cell27_1304058_MLP_test_pred.npy
+  revision_outputs\cell27_1304058_MLP_val_pred.npy
+  revision_outputs\cell27_180000_HistGB_test_pred.npy
+  revision_outputs\cell27_180000_HistGB_val_pred.npy
+  ... and 20 additional matches
+
+04_Data_Leakage: 1 candidate matches
+  revision_outputs\cell24_raw_feature_audit.csv
+
+05_Origination_Features: 10 candidate matches
+  revision_outputs\cell24_candidate_features.csv
+  revision_outputs\cell24_raw_feature_audit.csv
+  revision_outputs\cell24_suspicious_candidate_features.csv
+  revision_outputs\cell25_duplicate_representation_pairs.csv
+  revision_outputs\cell25_full_feature_usability_audit.csv
+  revision_outputs\cell25_raw_log_pairs.csv
+  revision_outputs\cell25_related_feature_families.csv
+  revision_outputs\cell25_zero_information_features.csv
+  ... and 2 additional matches
+
+06_Brier_Baseline: 0 candidate matches
+
+07_Cluster_Uncertainty: 4 candidate matches
+  revision_outputs\cell22_analytic_vs_bootstrap_ci.csv
+  revision_outputs\cell22_bootstrap_cif_summary.csv
+  revision_outputs\cell28_paired_bootstrap_model_comparisons.csv
+  revision_outputs\cell28_test_performance_point_estimates.csv
+
+08_Subgroups: 0 candidate matches
+
+09_Governance_Rules: 13 candidate matches
+  revision_outputs\cell30_old_vs_recalibrated_thresholds.csv
+  revision_outputs\cell30_recalibrated_threshold_analysis.csv
+  revision_outputs\cell31A_490_threshold_audit.csv
+  revision_outputs\cell31A_geographic_stress_summary.csv
+  revision_outputs\cell31A_monthly_stress_structure.csv
+  revision_outputs\cell31A_stress_variable_distributions.csv
+  revision_outputs\cell31A_thresholds_near_641.csv
+  revision_outputs\cell31A_unemployment_correlations.csv
+  ... and 5 additional matches
+
+10_Model_Comparison: 5 candidate matches
+  revision_outputs\07_maturity_rule_comparison.csv
+  revision_outputs\cell27_training_size_deltas.csv
+  revision_outputs\cell27_training_size_sensitivity.csv
+  revision_outputs\cell28_paired_bootstrap_model_comparisons.csv
+  revision_outputs\cell28_test_performance_point_estimates.csv
+
+11_Reproducibility: 0 candidate matches
+
+12_Target_Definition: 19 candidate matches
+  revision_outputs\01_loan_status_counts.csv
+  revision_outputs\02_badloan_counts.csv
+  revision_outputs\03_status_by_badloan.csv
+  revision_outputs\04_status_date_audit.csv
+  revision_outputs\06_status_counts_by_split.csv
+  revision_outputs\cell11_status_observation_horizon.csv
+  revision_outputs\cell13_before_term_by_status.csv
+  revision_outputs\cell13_duration_by_status.csv
+  ... and 11 additional matches
+
+13_Competing_Risks: 2 candidate matches
+  revision_outputs\cell19_overall_competing_risk_cif.csv
+  revision_outputs\cell19_term_competing_risk_cif.csv
+
+14_Calibration: 9 candidate matches
+  revision_outputs\cell29_before_after_calibration.csv
+  revision_outputs\cell29_test_calibration_change.csv
+  revision_outputs\cell29_test_reliability_after.csv
+  revision_outputs\cell29_test_reliability_before.csv
+  revision_outputs\cell29_validation_reliability_after.csv
+  revision_outputs\cell29_validation_reliability_before.csv
+  revision_outputs\cell30_old_vs_recalibrated_thresholds.csv
+  revision_outputs\cell30_recalibrated_test_operating_points.csv
+  ... and 1 additional matches
+
+15_Review_Costs: 0 candidate matches
+
+16_Regulatory: 0 candidate matches
+
+=================================================================
+NEXT ACTION
+=================================================================
+Inspect identified outputs before deciding
+which experiments must be rerun.
+
+Do not treat filename matches as validated results.

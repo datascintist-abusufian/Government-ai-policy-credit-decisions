@@ -1,0 +1,15 @@
+loan_status,badloan,n
+Charged Off,0.0,0
+Charged Off,1.0,177884
+Current,0.0,1704854
+Current,1.0,0
+Default,0.0,0
+Default,1.0,122
+Fully Paid,0.0,765339
+Fully Paid,1.0,0
+In Grace Period,0.0,16615
+In Grace Period,1.0,0
+Late (16-30 days),0.0,0
+Late (16-30 days),1.0,7510
+Late (31-120 days),0.0,0
+Late (31-120 days),1.0,31106

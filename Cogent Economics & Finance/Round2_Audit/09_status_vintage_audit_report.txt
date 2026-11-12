@@ -1,0 +1,90 @@
+ROUND 2 - REVIEWER 2 COMMENT 1
+2016 loan-status vintage audit
+
+Total dataset records scanned: 2,703,430
+Selected 2012-2016 36-month loans: 890,122
+
+IMPORTANT:
+Recorded status is not necessarily an as-of-April-2020 status.
+Date fields are diagnostics, not proof of status history.
+
+STATUS BY YEAR:
+ issue_year        loan_status      n  year_total   percent
+       2012        Charged Off   2717       20910 12.993783
+       2012         Fully Paid  18193       20910 87.006217
+       2013        Charged Off  12359      100269 12.325843
+       2013            Default      2      100269  0.001995
+       2013         Fully Paid  87904      100269 87.668173
+       2013    In Grace Period      1      100269  0.000997
+       2013 Late (31-120 days)      3      100269  0.002992
+       2014        Charged Off  19841      162508 12.209245
+       2014            Current  43228      162508 26.600537
+       2014            Default     15      162508  0.009230
+       2014         Fully Paid  97037      162508 59.712137
+       2014    In Grace Period    785      162508  0.483053
+       2014  Late (16-30 days)    278      162508  0.171069
+       2014 Late (31-120 days)   1324      162508  0.814729
+       2015        Charged Off  42160      283108 14.891843
+       2015            Current     12      283108  0.004239
+       2015         Fully Paid 240924      283108 85.099679
+       2015    In Grace Period      1      283108  0.000353
+       2015 Late (31-120 days)     11      283108  0.003885
+       2016        Charged Off   7531      323327  2.329221
+       2016            Current 268313      323327 82.985028
+       2016            Default     48      323327  0.014846
+       2016         Fully Paid  37890      323327 11.718786
+       2016    In Grace Period   3003      323327  0.928781
+       2016  Late (16-30 days)   1240      323327  0.383513
+       2016 Late (31-120 days)   5302      323327  1.639826
+
+2016 MONTHLY CURRENT SHARE:
+issue_month  total  current  current_pct
+    2016-01  22665    16605    73.262740
+    2016-02  28601    21601    75.525331
+    2016-03  44812    34588    77.184683
+    2016-04  28090    22367    79.626201
+    2016-05  21816    17570    80.537220
+    2016-06  24588    20194    82.129494
+    2016-07  25362    21217    83.656652
+    2016-08  27173    23312    85.791043
+    2016-09  21328    18603    87.223368
+    2016-10  24738    22230    89.861751
+    2016-11  26195    24031    91.738881
+    2016-12  27959    25995    92.975428
+
+2016 CURRENT LOAN DATE DIAGNOSTICS:
+        date_field       recorded_year      n
+last_credit_pull_d                2016    639
+last_credit_pull_d                2017 267658
+last_credit_pull_d Missing_or_unparsed     16
+      last_pymnt_d                2017 268313
+      next_pymnt_d                2017 268313
+
+STATUS/LABEL CROSSCHECK:
+ issue_year        loan_status       label      n
+       2012        Charged Off     Adverse   2717
+       2012         Fully Paid Non_adverse  18193
+       2013        Charged Off     Adverse  12359
+       2013            Default     Adverse      2
+       2013         Fully Paid Non_adverse  87904
+       2013    In Grace Period Non_adverse      1
+       2013 Late (31-120 days)     Adverse      3
+       2014        Charged Off     Adverse  19841
+       2014            Current Non_adverse  43228
+       2014            Default     Adverse     15
+       2014         Fully Paid Non_adverse  97037
+       2014    In Grace Period Non_adverse    785
+       2014  Late (16-30 days)     Adverse    278
+       2014 Late (31-120 days)     Adverse   1324
+       2015        Charged Off     Adverse  42160
+       2015            Current Non_adverse     12
+       2015         Fully Paid Non_adverse 240924
+       2015    In Grace Period Non_adverse      1
+       2015 Late (31-120 days)     Adverse     11
+       2016        Charged Off     Adverse   7531
+       2016            Current Non_adverse 268313
+       2016            Default     Adverse     48
+       2016         Fully Paid Non_adverse  37890
+       2016    In Grace Period Non_adverse   3003
+       2016  Late (16-30 days)     Adverse   1240
+       2016 Late (31-120 days)     Adverse   5302

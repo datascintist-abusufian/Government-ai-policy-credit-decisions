@@ -1,0 +1,12 @@
+grade,term,regime,n,defaults,nondefaults
+C,36 months,High-unemployment,110,21,89
+D,36 months,High-unemployment,85,12,73
+C,60 months,High-unemployment,58,11,47
+D,60 months,High-unemployment,56,11,45
+A,36 months,High-unemployment,154,7,147
+B,60 months,High-unemployment,49,6,43
+B,36 months,High-unemployment,119,5,114
+A,60 months,High-unemployment,10,1,9
+E,36 months,High-unemployment,0,0,0
+E,60 months,High-unemployment,0,0,0
+F,36 months,High-unemployment,0,0,0

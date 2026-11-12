@@ -1,0 +1,15 @@
+STEP 45: POST-HOC DISJOINT VALIDATION WINDOWS, WITHOUT REFITTING CLASSIFIERS
+Selection: Jul-Sep 2018 | Calibration: Oct-Dec 2018 | Threshold: Jan-Mar 2019.
+The existing fitted models and selected outcome population are unchanged.
+No model selection/calibration/threshold observation is reused across those stages.
+This is a retrospective sensitivity prompted by peer review, NOT the original pre-specified procedure.
+It cannot correct predictor-time leakage, maturity-selection bias, lack of an untouched test period,
+or the absence of observed review effects. It does not verify original classifier training environment.
+Results are conditional on the same 41,145 terminal-status-selected loans.
+Selected model: Logistic_SGD. Validation selection AUC: {'Logistic_SGD': 0.7091288130358245, 'HistGB': 0.7046907601017405, 'MLP': 0.6769392044771518}.
+Calibration intercept=-1.286570868, slope=0.718130500.
+
+ posthoc_alternative_only selected_model  model_selection_AUC_Logistic_SGD  model_selection_AUC_HistGB  model_selection_AUC_MLP  calibration_intercept  calibration_slope fn_to_fp_ratio  threshold  threshold_window_n  threshold_window_cost  test_n  test_adverse_n  test_model_auc  test_calibrated_brier  test_calibrated_logloss  test_calibrated_ece10  test_predicted_mean  test_observed_rate  test_observed_minus_predicted  test_fnr  test_flag_rate  test_tp  test_fp  test_fn  test_tn  test_classification_cost  test_best_trivial_classification_cost
+                     True   Logistic_SGD                          0.709129                    0.704691                 0.676939              -1.286571            0.71813            5:1   0.699223                3685                    490   41145            6025         0.69931               0.119007                 0.396395               0.040172             0.106465            0.146433                       0.039969  0.999834        0.000122        1        4     6024    35116                     30124                                  30125
+                     True   Logistic_SGD                          0.709129                    0.704691                 0.676939              -1.286571            0.71813           10:1   0.699223                3685                    980   41145            6025         0.69931               0.119007                 0.396395               0.040172             0.106465            0.146433                       0.039969  0.999834        0.000122        1        4     6024    35116                     60244                                  35120
+                     True   Logistic_SGD                          0.709129                    0.704691                 0.676939              -1.286571            0.71813           20:1   0.699223                3685                   1960   41145            6025         0.69931               0.119007                 0.396395               0.040172             0.106465            0.146433                       0.039969  0.999834        0.000122        1        4     6024    35116                    120484                                  35120

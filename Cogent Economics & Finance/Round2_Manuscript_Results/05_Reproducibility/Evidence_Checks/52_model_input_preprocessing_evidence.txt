@@ -1,0 +1,272 @@
+﻿
+==============================================
+A. ORIGINAL MODEL FEATURE CONSTRUCTION
+==============================================
+Cell 27, Line 52:     "home_ownership_",
+Cell 27, Line 53:     "emp_length_",
+Cell 27, Line 54:     "grade_",
+Cell 27, Line 55:     "sub_grade_",
+Cell 27, Line 56:     "term_"
+Cell 27, Line 57: ]
+Cell 27, Line 58: 
+Cell 27, Line 59: model_features = [
+Cell 27, Line 60:     c for c in base_features
+Cell 27, Line 61:     if c not in PREENCODED_DUPLICATES
+Cell 27, Line 62: ]
+Cell 27, Line 63: 
+Cell 27, Line 64: print("\n" + "=" * 110)
+Cell 27, Line 65: print("B. DUPLICATE REPRESENTATIONS REMOVED")
+Cell 27, Line 66: print("=" * 110)
+Cell 27, Line 67: 
+Cell 27, Line 68: print("Removed:", PREENCODED_DUPLICATES)
+Cell 27, Line 69: print("Count removed:", len(PREENCODED_DUPLICATES))
+Cell 27, Line 70: print("Remaining model features:", len(model_features))
+Cell 27, Line 71: 
+Cell 27, Line 72: 
+Cell 27, Line 73: # ------------------------------------------------------------
+Cell 27, Line 74: # C. Explicitly document raw/log pairs
+Cell 27, Line 75: #
+Cell 27, Line 76: # We retain both for now because they are deterministic feature
+
+==============================================
+B. NUMERIC AND CATEGORICAL FEATURES
+==============================================
+Cell 27, Line 337: 
+Cell 27, Line 338: # ------------------------------------------------------------
+Cell 27, Line 339: # K. Final feature type audit
+Cell 27, Line 340: # ------------------------------------------------------------
+Cell 27, Line 341: 
+Cell 27, Line 342: X_probe = df_model[model_features]
+Cell 27, Line 343: 
+Cell 27, Line 344: categorical_features = (
+Cell 27, Line 345:     X_probe
+Cell 27, Line 346:     .select_dtypes(
+Cell 27, Line 347:         include=["object", "category"]
+Cell 27, Line 348:     )
+Cell 27, Line 349:     .columns
+Cell 27, Line 350:     .tolist()
+Cell 27, Line 351: )
+Cell 27, Line 352: 
+Cell 27, Line 353: numeric_features = [
+Cell 27, Line 354:     c for c in model_features
+Cell 27, Line 355:     if c not in categorical_features
+Cell 27, Line 356: ]
+Cell 27, Line 357: 
+Cell 27, Line 358: print("\n" + "=" * 110)
+Cell 27, Line 359: print("F. LOCKED REVISED FEATURE SPECIFICATION")
+Cell 27, Line 360: print("=" * 110)
+Cell 27, Line 361: 
+Cell 27, Line 362: print("Total model features:", len(model_features))
+Cell 27, Line 363: print("Numeric:", len(numeric_features))
+Cell 27, Line 364: print("Categorical:", len(categorical_features))
+Cell 27, Line 365: 
+Cell 27, Line 366: print("\nCategorical features:")
+Cell 27, Line 367: print(categorical_features)
+
+==============================================
+C. MODEL DATA PREPARATION
+==============================================
+Cell 28, Line 145:     "Locked Cell 26 features:",
+Cell 28, Line 146:     len(model_features)
+Cell 28, Line 147: )
+Cell 28, Line 148: 
+Cell 28, Line 149: print(
+Cell 28, Line 150:     "High-cardinality free-text exclusions:",
+Cell 28, Line 151:     HIGH_CARDINALITY_TEXT
+Cell 28, Line 152: )
+Cell 28, Line 153: 
+Cell 28, Line 154: print(
+Cell 28, Line 155:     "Features entering models:",
+Cell 28, Line 156:     len(features_27)
+Cell 28, Line 157: )
+Cell 28, Line 158: 
+Cell 28, Line 159: print(
+Cell 28, Line 160:     "Numeric:",
+Cell 28, Line 161:     len(numeric_27)
+Cell 28, Line 162: )
+Cell 28, Line 163: 
+Cell 28, Line 164: print(
+Cell 28, Line 165:     "Categorical:",
+Cell 28, Line 166:     len(categorical_27)
+Cell 28, Line 167: )
+Cell 28, Line 168: 
+Cell 28, Line 169: 
+Cell 28, Line 170: # ------------------------------------------------------------
+Cell 28, Line 171: # C. Preprocessing
+Cell 28, Line 172: #
+Cell 28, Line 173: # Numeric:
+Cell 28, Line 174: #   median imputation + standardisation
+
+==============================================
+D. PREPROCESSING FIT AND TRANSFORM
+==============================================
+Cell 28, Line 180: # ------------------------------------------------------------
+Cell 28, Line 181: 
+Cell 28, Line 182: numeric_pipe = Pipeline([
+Cell 28, Line 183:     (
+Cell 28, Line 184:         "imputer",
+Cell 28, Line 185:         SimpleImputer(strategy="median")
+Cell 28, Line 186:     ),
+Cell 28, Line 187:     (
+Cell 28, Line 188:         "scale",
+Cell 28, Line 189:         StandardScaler()
+Cell 28, Line 190:     )
+Cell 28, Line 191: ])
+Cell 28, Line 192: 
+Cell 28, Line 193: categorical_pipe = Pipeline([
+Cell 28, Line 194:     (
+Cell 28, Line 195:         "imputer",
+Cell 28, Line 196:         SimpleImputer(
+Cell 28, Line 197:             strategy="most_frequent"
+Cell 28, Line 198:         )
+Cell 28, Line 199:     ),
+Cell 28, Line 200:     (
+Cell 28, Line 201:         "onehot",
+Cell 28, Line 202:         OneHotEncoder(
+Cell 28, Line 203:             handle_unknown="ignore",
+Cell 28, Line 204:             max_categories=50,
+Cell 28, Line 205:             sparse_output=False
+Cell 28, Line 206:         )
+Cell 28, Line 207:     )
+Cell 28, Line 208: ])
+Cell 28, Line 209: 
+Cell 28, Line 210: preprocessor = ColumnTransformer(
+Cell 28, Line 211:     transformers=[
+Cell 28, Line 212:         (
+Cell 28, Line 213:             "num",
+Cell 28, Line 214:             numeric_pipe,
+Cell 28, Line 215:             numeric_27
+Cell 28, Line 216:         ),
+Cell 28, Line 217:         (
+Cell 28, Line 218:             "cat",
+Cell 28, Line 219:             categorical_pipe,
+Cell 28, Line 220:             categorical_27
+Cell 28, Line 221:         )
+Cell 28, Line 222:     ],
+Cell 28, Line 223:     remainder="drop"
+Cell 28, Line 224: )
+Cell 28, Line 225: 
+Cell 28, Line 226: 
+Cell 28, Line 227: # ------------------------------------------------------------
+Cell 28, Line 228: # D. Fit preprocessing ONLY on mature training cohort
+Cell 28, Line 229: # ------------------------------------------------------------
+Cell 28, Line 230: 
+Cell 28, Line 231: print("\n" + "=" * 110)
+Cell 28, Line 232: print("C. FITTING PREPROCESSOR")
+Cell 28, Line 233: print("=" * 110)
+Cell 28, Line 234: 
+Cell 28, Line 235: t0 = time.time()
+Cell 28, Line 236: 
+Cell 28, Line 237: preprocessor.fit(
+Cell 28, Line 238:     train_df[features_27]
+Cell 28, Line 239: )
+Cell 28, Line 240: 
+Cell 28, Line 241: print(
+Cell 28, Line 242:     "Preprocessor fitted in",
+Cell 28, Line 243:     f"{time.time() - t0:.1f}",
+Cell 28, Line 244:     "seconds"
+Cell 28, Line 245: )
+Cell 28, Line 246: 
+Cell 28, Line 247: 
+Cell 28, Line 248: # ------------------------------------------------------------
+Cell 28, Line 249: # E. Transform fixed validation and test sets once
+Cell 28, Line 250: # ------------------------------------------------------------
+Cell 28, Line 251: 
+Cell 28, Line 252: print("\nTransforming validation/test...")
+Cell 28, Line 253: 
+Cell 28, Line 254: X_val = preprocessor.transform(
+Cell 28, Line 255:     val_df[features_27]
+Cell 28, Line 256: ).astype(np.float32)
+Cell 28, Line 257: 
+Cell 28, Line 258: X_test = preprocessor.transform(
+Cell 28, Line 259:     test_df[features_27]
+Cell 28, Line 260: ).astype(np.float32)
+Cell 28, Line 261: 
+Cell 28, Line 262: y_val = val_df["y"].to_numpy()
+Cell 28, Line 263: y_test = test_df["y"].to_numpy()
+
+==============================================
+E. TRAINING-SAMPLE CONSTRUCTION
+==============================================
+Cell 28, Line 275: 
+Cell 28, Line 276: # ------------------------------------------------------------
+Cell 28, Line 277: # F. Nested training samples
+Cell 28, Line 278: #
+Cell 28, Line 279: # A single deterministic permutation ensures:
+Cell 28, Line 280: # 180k ⊂ 360k ⊂ 540k ⊂ full
+Cell 28, Line 281: # ------------------------------------------------------------
+Cell 28, Line 282: 
+Cell 28, Line 283: RANDOM_SEED = 42
+Cell 28, Line 284: 
+Cell 28, Line 285: rng = np.random.default_rng(
+Cell 28, Line 286:     RANDOM_SEED
+Cell 28, Line 287: )
+Cell 28, Line 288: 
+Cell 28, Line 289: permutation = rng.permutation(
+Cell 28, Line 290:     len(train_df)
+Cell 28, Line 291: )
+Cell 28, Line 292: 
+Cell 28, Line 293: training_sizes = [
+Cell 28, Line 294:     180_000,
+Cell 28, Line 295:     360_000,
+Cell 28, Line 296:     540_000,
+Cell 28, Line 297:     len(train_df)
+Cell 28, Line 298: ]
+Cell 28, Line 299: 
+Cell 28, Line 300: 
+
+==============================================
+F. TRAINING MATRIX AND MODEL FITTING
+==============================================
+Cell 28, Line 350: print("D. TRAINING-SIZE SENSITIVITY")
+Cell 28, Line 351: print("=" * 110)
+Cell 28, Line 352: 
+Cell 28, Line 353: 
+Cell 28, Line 354: for n_train in training_sizes:
+Cell 28, Line 355: 
+Cell 28, Line 356:     print("\n" + "-" * 110)
+Cell 28, Line 357:     print(
+Cell 28, Line 358:         "Training size:",
+Cell 28, Line 359:         f"{n_train:,}"
+Cell 28, Line 360:     )
+Cell 28, Line 361:     print("-" * 110)
+Cell 28, Line 362: 
+Cell 28, Line 363:     idx = permutation[:n_train]
+Cell 28, Line 364: 
+Cell 28, Line 365:     subset = train_df.iloc[idx]
+Cell 28, Line 366: 
+Cell 28, Line 367:     print("Transforming training subset...")
+Cell 28, Line 368: 
+Cell 28, Line 369:     transform_start = time.time()
+Cell 28, Line 370: 
+Cell 28, Line 371:     X_train = preprocessor.transform(
+Cell 28, Line 372:         subset[features_27]
+Cell 28, Line 373:     ).astype(np.float32)
+Cell 28, Line 374: 
+Cell 28, Line 375:     y_train = (
+Cell 28, Line 376:         subset["y"]
+Cell 28, Line 377:         .to_numpy()
+Cell 28, Line 378:     )
+Cell 28, Line 379: 
+Cell 28, Line 380:     print(
+
+==============================================
+G. TIMING-RISK VARIABLES IN MODEL SPECIFICATION
+==============================================
+PRESENT: funded_amnt | Funding stage availability requires verification
+PRESENT: funded_amnt_inv | Investor funding availability requires verification
+PRESENT: int_rate | Contractual rate; decision stage uncertain
+PRESENT: grade | Assigned underwriting grade; decision stage uncertain
+PRESENT: sub_grade | Assigned underwriting sub-grade; decision stage uncertain
+PRESENT: unemployment | Macroeconomic publication lag requires verification
+PRESENT: unem_rate | Macroeconomic publication lag requires verification
+PRESENT: cpi | Macroeconomic publication lag requires verification
+PRESENT: logfunded_amnt | Funding stage availability requires verification
+PRESENT: loan_vol | Aggregate grouped by last payment date
+PRESENT: median_dummy | May depend on post-origination loan volume
+PRESENT: quarter | Possible last-payment-derived calendar field
+PRESENT: month | Possible last-payment-derived calendar field
+PRESENT: year | Possible last-payment-derived calendar field
+PRESENT: loan_vol6m | Issue-month aggregate; timing requires verification
+PRESENT: loglvol_6m | Derived from issue-month aggregate
+PRESENT: issue_year | Origination timing relative to decision requires verification

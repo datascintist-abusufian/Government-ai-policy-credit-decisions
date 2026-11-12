@@ -1,0 +1,4 @@
+split,start_year,end_year,term_months,n_total,n_adverse,n_non_adverse,n_unknown_labels,n_current_status,adverse_rate_pct,all_contractually_eligible
+Training,2012,2014,36,283687,36539,247148,0,43228,12.880040326134084,True
+Validation,2015,2015,36,283108,42171,240937,0,12,14.895728838464473,True
+Test,2016,2016,36,323327,14121,309206,0,268313,4.3674051347397524,True

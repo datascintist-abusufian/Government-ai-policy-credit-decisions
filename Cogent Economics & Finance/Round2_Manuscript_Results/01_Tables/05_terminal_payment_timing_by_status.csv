@@ -1,0 +1,17 @@
+cohort,loan_status,last_payment_timing,n
+Test,Charged Off,Before_April_2020,5413
+Test,Charged Off,During_April_2020,21
+Test,Charged Off,Missing_or_Unparsed,587
+Test,Default,Before_April_2020,3
+Test,Default,Missing_or_Unparsed,1
+Test,Fully Paid,After_April_2020,46
+Test,Fully Paid,Before_April_2020,32766
+Test,Fully Paid,During_April_2020,2308
+Train,Charged Off,Before_April_2020,167313
+Train,Charged Off,Missing_or_Unparsed,1782
+Train,Default,Before_April_2020,115
+Train,Fully Paid,Before_April_2020,705616
+Validation,Charged Off,Before_April_2020,2397
+Validation,Charged Off,Missing_or_Unparsed,371
+Validation,Default,Before_April_2020,3
+Validation,Fully Paid,Before_April_2020,24603

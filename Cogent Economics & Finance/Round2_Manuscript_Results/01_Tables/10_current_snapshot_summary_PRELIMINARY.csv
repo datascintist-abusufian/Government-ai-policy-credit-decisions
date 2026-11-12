@@ -1,0 +1,7 @@
+origination_year,current_loans,badloan_0,badloan_1,last_pymnt_d_modal_year,last_pymnt_d_modal_share_pct,next_pymnt_d_modal_year,next_pymnt_d_modal_share_pct,last_credit_pull_d_modal_year,last_credit_pull_d_modal_share_pct
+2014,43228,43228,0,2017,100.0,2017,100.0,2017,99.61
+2015,12,12,0,2019,75.0,2019,75.0,2019,100.0
+2016,268313,268313,0,2017,100.0,2017,100.0,2017,99.76
+2017,218032,218032,0,2018,85.64,2018,85.64,2018,81.98
+2018,310146,310146,0,2019,50.29,2019,50.29,2019,49.95
+2019,309154,309154,0,2020,75.84,2020,75.84,2020,74.82

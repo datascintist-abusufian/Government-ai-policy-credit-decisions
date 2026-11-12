@@ -1,0 +1,68 @@
+ROUND 2 - REVIEWER 2 COMMENT 1
+Historical observation-date consistency
+
+Dataset: E:\Governance-Policy\Cogent Economics & Finance\P2P_Macro_Data.dta
+Total source records scanned: 2,703,430
+
+Scope: 36-month loans recorded as Current.
+
+IMPORTANT:
+Last-credit-pull and payment dates are
+proxies for recorded data recency.
+They are not verified historical
+loan-status snapshot dates.
+
+SUMMARY:
+ origination_year  current_loans  badloan_0  badloan_1  last_pymnt_d_modal_year  last_pymnt_d_modal_share_pct  next_pymnt_d_modal_year  next_pymnt_d_modal_share_pct  last_credit_pull_d_modal_year  last_credit_pull_d_modal_share_pct
+             2014          43228      43228          0                     2017                        100.00                     2017                        100.00                           2017                               99.61
+             2015             12         12          0                     2019                         75.00                     2019                         75.00                           2019                              100.00
+             2016         268313     268313          0                     2017                        100.00                     2017                        100.00                           2017                               99.76
+             2017         218032     218032          0                     2018                         85.64                     2018                         85.64                           2018                               81.98
+             2018         310146     310146          0                     2019                         50.29                     2019                         50.29                           2019                               49.95
+             2019         309154     309154          0                     2020                         75.84                     2020                         75.84                           2020                               74.82
+
+FULL DATE-YEAR DISTRIBUTION:
+ origination_year         date_field       recorded_year      n
+             2014 last_credit_pull_d                2014      2
+             2014 last_credit_pull_d                2015     39
+             2014 last_credit_pull_d                2016    123
+             2014 last_credit_pull_d                2017  43058
+             2014 last_credit_pull_d Missing_or_unparsed      6
+             2014       last_pymnt_d                2017  43228
+             2014       next_pymnt_d                2017  43228
+             2015 last_credit_pull_d                2019     12
+             2015       last_pymnt_d                2018      3
+             2015       last_pymnt_d                2019      9
+             2015       next_pymnt_d                2018      3
+             2015       next_pymnt_d                2019      9
+             2016 last_credit_pull_d                2016    639
+             2016 last_credit_pull_d                2017 267658
+             2016 last_credit_pull_d Missing_or_unparsed     16
+             2016       last_pymnt_d                2017 268313
+             2016       next_pymnt_d                2017 268313
+             2017 last_credit_pull_d                2016      2
+             2017 last_credit_pull_d                2017   8331
+             2017 last_credit_pull_d                2018 178735
+             2017 last_credit_pull_d                2019  30959
+             2017 last_credit_pull_d Missing_or_unparsed      5
+             2017       last_pymnt_d                2018 186722
+             2017       last_pymnt_d                2019  31310
+             2017       next_pymnt_d                2018 186722
+             2017       next_pymnt_d                2019  31310
+             2018 last_credit_pull_d                2017    301
+             2018 last_credit_pull_d                2018 154918
+             2018 last_credit_pull_d                2019 154924
+             2018 last_credit_pull_d Missing_or_unparsed      3
+             2018       last_pymnt_d                2018 154171
+             2018       last_pymnt_d                2019 155975
+             2018       next_pymnt_d                2018 154171
+             2018       next_pymnt_d                2019 155975
+             2019 last_credit_pull_d                2015      1
+             2019 last_credit_pull_d                2018     28
+             2019 last_credit_pull_d                2019  77800
+             2019 last_credit_pull_d                2020 231322
+             2019 last_credit_pull_d Missing_or_unparsed      3
+             2019       last_pymnt_d                2019  74706
+             2019       last_pymnt_d                2020 234448
+             2019       next_pymnt_d                2019  74706
+             2019       next_pymnt_d                2020 234448

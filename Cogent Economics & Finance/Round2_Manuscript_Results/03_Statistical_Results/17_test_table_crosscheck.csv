@@ -1,0 +1,4 @@
+ratio,separate_test_table_consistent
+5:1,True
+10:1,True
+20:1,True

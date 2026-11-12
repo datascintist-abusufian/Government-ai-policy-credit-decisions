@@ -1,0 +1,4 @@
+fn_to_fp_cost_ratio,validation_threshold,test_flag_rate,test_fnr
+5:1,0.172966,0.077458,0.843485
+10:1,0.096162,0.375307,0.41361
+20:1,0.032698,0.850553,0.048963

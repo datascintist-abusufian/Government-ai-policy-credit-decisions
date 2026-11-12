@@ -1,0 +1,126 @@
+﻿ROUND 2 REVIEW
+Reviewer 2 - Comment 1
+Outcome maturity and selection bias
+
+Generated: 2026-11-05 16:34:30
+
+==================================================
+A. VERIFIED TRAINING COHORT COUNTS
+==================================================
+
+Mature training loans:
+1304058
+
+Terminal-status training loans:
+874826
+
+Mature but nonterminal training loans:
+429232
+
+Nonterminal share of mature training:
+32.9151%
+
+==================================================
+B. POTENTIAL INCOMPLETE-OUTCOME EXPOSURE
+==================================================
+
+2014 Current, 36-month loans:
+43228
+
+2016 Current, 36-month loans:
+268313
+
+Combined:
+311541
+
+Share of mature training cohort:
+23.8901%
+
+All these observations have badloan=0.
+
+Under the reconstructed maturity rule, their
+contractual age makes them eligible for the
+training cohort.
+
+This is a cohort-level exposure estimate.
+The exact number used by each fitted model
+requires a downstream model-input audit.
+
+==================================================
+C. DATA RECENCY
+==================================================
+
+2014 Current loans:
+Most common last-payment year:
+2017
+
+2016 Current loans:
+Most common last-payment year:
+2017
+
+Payment dates are not verified snapshot dates.
+
+==================================================
+D. METHODOLOGICAL DECISION
+==================================================
+
+1. The 2019 mature test cohort is selected
+   entirely through recorded terminal status.
+
+2. The mature training cohort also includes
+   nonterminal observations selected through
+   contractual age.
+
+3. Contractual age does not demonstrate that
+   the recorded outcome has been followed
+   through the contractual period.
+
+4. The dataset does not currently establish
+   uniform historical observation dates.
+
+5. Replacing the test cohort without verifying
+   outcome availability would not solve the
+   fundamental evaluation problem.
+
+6. Reliable historical outcome snapshots or
+   event dates would be needed for a stronger
+   full-cohort risk evaluation.
+
+7. Until then, original prediction results
+   must be interpreted conditionally.
+
+==================================================
+E. PUBLICATION CAUTION
+==================================================
+
+This report is an audit finding.
+
+It is not evidence that every Current loan
+subsequently defaulted.
+
+It does not quantify actual label errors.
+
+It does not prove that inconsistent labels
+caused the model's calibration errors.
+
+The existing results should not be presented
+as representative full-cohort default-risk
+performance without additional validation.
+
+==================================================
+F. CONSOLIDATED TABLE
+==================================================
+
+
+Measure                             Count ShareOfMatureTrainingPct Interpretation                            
+-------                             ----- ------------------------ --------------                            
+Mature training cohort            1304058                      100 Original mature training cohort           
+Terminal-status training loans     874826                  67.0849 Selected through terminal status          
+Nonterminal mature training loans  429232                  32.9151 Qualified through contractual age only    
+2014 Current, 36-month              43228                   3.3149 Current, badloan=0, contractually eligible
+2016 Current, 36-month             268313                  20.5752 Current, badloan=0, contractually eligible
+Combined 2014 and 2016 Current     311541                  23.8901 Potential incomplete-outcome exposure     
+
+
+
+

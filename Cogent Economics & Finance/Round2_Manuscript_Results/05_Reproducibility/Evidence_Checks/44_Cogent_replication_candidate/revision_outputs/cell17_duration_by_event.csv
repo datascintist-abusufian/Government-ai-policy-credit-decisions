@@ -1,0 +1,4 @@
+event_label,count,median,mean,min,max
+Censored/unresolved,1760207,9.0,10.837109499053236,1.0,56.0
+Charged Off,175144,13.0,15.077079431781849,0.0,52.0
+Fully Paid,765339,18.0,19.289237841009015,0.0,56.0

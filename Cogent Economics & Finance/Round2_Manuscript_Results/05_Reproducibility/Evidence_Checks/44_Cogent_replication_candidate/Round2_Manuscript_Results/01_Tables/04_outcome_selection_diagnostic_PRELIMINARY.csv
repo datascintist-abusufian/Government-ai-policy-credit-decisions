@@ -1,0 +1,3 @@
+﻿"Cohort","TotalLoans","MatureLoans","TerminalStatusLoans","MaximumFollowupMonths","ContractualCompletionPossible","TerminalShareOfMature","CountDifference","CountCheck"
+"Validation","370994","27374","27374","21","False","100","0","MATCH"
+"Test","401169","41145","41145","12","False","100","0","MATCH"

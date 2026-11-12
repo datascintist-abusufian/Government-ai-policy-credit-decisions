@@ -1,0 +1,8 @@
+loan_status,Train,Validation,Test
+Charged Off,169095,2768,6021
+Current,1015804,336925,352125
+Default,115,3,4
+Fully Paid,705616,24603,35120
+In Grace Period,13079,1486,2050
+Late (16-30 days),5558,1125,827
+Late (31-120 days),22000,4084,5022

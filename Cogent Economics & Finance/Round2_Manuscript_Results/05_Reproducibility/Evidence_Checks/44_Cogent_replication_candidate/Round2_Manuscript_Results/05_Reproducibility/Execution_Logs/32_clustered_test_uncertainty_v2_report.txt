@@ -1,0 +1,50 @@
+ROUND 2 | REVIEWER 2 COMMENTS 7/8 | TEST CLUSTERED UNCERTAINTY
+Python: 3.14.7 | NumPy: 2.5.2 | pandas: 2.3.3
+Only state/month metadata read from source; original labels/predictions are read-only.
+Reconstructing test cohort metadata in original source row order...
+  Scanned 200,000 source records
+  Scanned 400,000 source records
+  Scanned 600,000 source records
+  Scanned 800,000 source records
+  Scanned 1,000,000 source records
+  Scanned 1,200,000 source records
+  Scanned 1,400,000 source records
+  Scanned 1,600,000 source records
+  Scanned 1,800,000 source records
+  Scanned 2,000,000 source records
+  Scanned 2,200,000 source records
+  Scanned 2,400,000 source records
+  Scanned 2,600,000 source records
+  Scanned 2,703,430 source records
+PASS: Test rows/labels match original predictions, n= 41145 , adverse= 6025
+PASS: Original test threshold counts replicated for 5:1, 10:1, 20:1
+PASS: unemployment-rate variable is a fraction; 4.9% is 0.049 in source units
+State clusters: 50 | Origination-month blocks: 9
+High-state-unemployment test subgroup: 641 observations; 74 adverse outcomes
+Observed recalibrated Brier: 0.123161 | ECE: 0.058325 | observed-minus-predicted gap: 0.058236
+
+state_cluster: 50 clusters, 1500 bootstrap resamples; no retraining
+  Completed 500/1500
+  Completed 1000/1500
+  Completed 1500/1500
+state_cluster complete
+
+origination_month_block: 9 clusters, 1500 bootstrap resamples; no retraining
+  Completed 500/1500
+  Completed 1000/1500
+  Completed 1500/1500
+origination_month_block complete
+
+SELECTED UNCERTAINTY RESULTS:
+
+INTERPRETATION LIMITS:
+- Confidence intervals condition on the previously trained models and held-out selected test population.
+- Separate state and month resampling are NOT joint two-way clustering or pipeline-bootstrap uncertainty.
+- Only 9 origination months: month-block bootstrap is exploratory, not reliable time-series inference.
+- No adjustment for feature selection, hyperparameter tuning, validation reuse, or outcome-selected maturity.
+- Subgroup gap is unadjusted for confounding and multiple testing; do not infer demographic fairness.
+- No multiplicity-adjusted hypothesis tests are claimed; interpret intervals as exploratory uncertainty ranges.
+- Cost figures are error-classification proxies, NOT observed human-review costs.
+Saved: E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\32_clustered_test_uncertainty_v2.csv
+Saved: E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\05_Reproducibility\Execution_Logs\32_clustered_test_uncertainty_v2_report.txt
+STEP 32 COMPLETE: No new models trained; source and original outputs unchanged.

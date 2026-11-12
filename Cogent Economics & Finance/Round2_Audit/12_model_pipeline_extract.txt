@@ -1,0 +1,2833 @@
+﻿ROUND 2 - MODEL INPUT AND TRAINING AUDIT
+Reviewer 2 - Comment 1
+
+Source: Economic and Finance.ipynb
+Cell indices are zero-based.
+Generated: 2026-11-05 16:37:39
+
+
+===========================================================================
+NOTEBOOK CELL INDEX: 27
+===========================================================================
+   1: # ============================================================
+   2: # CELL 26 — Lock revised modelling cohort + feature specification
+   3: #
+   4: # Purpose:
+   5: #   1. Start from the 162 non-zero-information candidates.
+   6: #   2. Remove duplicate pre-encoded versions where the raw
+   7: #      categorical variable is already available.
+   8: #   3. Retain legitimate origination-time credit-history fields.
+   9: #   4. Reconstruct the manuscript chronological periods.
+  10: #   5. Apply the already-verified maturity definition.
+  11: #
+  12: # NO MODEL TRAINING.
+  13: # After this cell, the feature specification is LOCKED.
+  14: # ============================================================
+  15: 
+  16: import pandas as pd
+  17: import numpy as np
+  18: 
+  19: 
+  20: # ------------------------------------------------------------
+  21: # A. Start from Cell 25 objectively usable features
+  22: # ------------------------------------------------------------
+  23: 
+  24: zero_info_set = set(zero_info["column"])
+  25: 
+  26: base_features = [
+  27:     c for c in candidate_cols
+  28:     if c not in zero_info_set
+  29: ]
+  30: 
+  31: print("=" * 110)
+  32: print("A. STARTING FEATURE SET")
+  33: print("=" * 110)
+  34: 
+  35: print("Cell 24 candidates:", len(candidate_cols))
+  36: print("Zero-information removed:", len(zero_info_set))
+  37: print("Remaining:", len(base_features))
+  38: 
+  39: 
+  40: # ------------------------------------------------------------
+  41: # B. Remove duplicate pre-encoded categorical representations
+  42: #
+  43: # Keep the original categorical version and let sklearn encode
+  44: # it inside the training pipeline.
+  45: # ------------------------------------------------------------
+  46: 
+  47: PREENCODED_DUPLICATES = [
+  48:     "application_type_",
+  49:     "initial_list_status_",
+  50:     "purpose_",
+  51:     "verification_status_",
+  52:     "home_ownership_",
+  53:     "emp_length_",
+  54:     "grade_",
+  55:     "sub_grade_",
+  56:     "term_"
+  57: ]
+  58: 
+  59: model_features = [
+  60:     c for c in base_features
+  61:     if c not in PREENCODED_DUPLICATES
+  62: ]
+  63: 
+  64: print("\n" + "=" * 110)
+  65: print("B. DUPLICATE REPRESENTATIONS REMOVED")
+  66: print("=" * 110)
+  67: 
+  68: print("Removed:", PREENCODED_DUPLICATES)
+  69: print("Count removed:", len(PREENCODED_DUPLICATES))
+  70: print("Remaining model features:", len(model_features))
+  71: 
+  72: 
+  73: # ------------------------------------------------------------
+  74: # C. Explicitly document raw/log pairs
+  75: #
+  76: # We retain both for now because they are deterministic feature
+  77: # transformations available at origination and their presence
+  78: # is not outcome leakage.
+  79: # ------------------------------------------------------------
+  80: 
+  81: print("\n" + "=" * 110)
+  82: print("C. RAW/LOG FEATURE POLICY")
+  83: print("=" * 110)
+  84: 
+  85: print(
+  86:     "Raw and log-transformed variables are retained where both "
+  87:     "are available because they are origination-time transformations, "
+  88:     "not post-outcome information."
+  89: )
+  90: 
+  91: 
+  92: # ------------------------------------------------------------
+  93: # D. Load only fields needed for cohort construction + modelling
+  94: # ------------------------------------------------------------
+  95: 
+  96: COHORT_COLS = [
+  97:     "issue_d",
+  98:     "loan_status",
+  99:     "term",
+ 100:     "badloan"
+ 101: ]
+ 102: 
+ 103: needed_cols = list(
+ 104:     dict.fromkeys(
+ 105:         COHORT_COLS + model_features
+ 106:     )
+ 107: )
+ 108: 
+ 109: print("\nLoading revised modelling frame from raw .dta...")
+ 110: print("Columns requested:", len(needed_cols))
+ 111: 
+ 112: df_model = pd.read_stata(
+ 113:     DTA_PATH,
+ 114:     columns=needed_cols,
+ 115:     convert_categoricals=False
+ 116: )
+ 117: 
+ 118: print("Rows loaded:", f"{len(df_model):,}")
+ 119: 
+ 120: 
+ 121: # ------------------------------------------------------------
+ 122: # E. Parse origination date
+ 123: # ------------------------------------------------------------
+ 124: 
+ 125: df_model["issue_date_clean"] = pd.to_datetime(
+ 126:     df_model["issue_d"]
+ 127:         .astype(str)
+ 128:         .str.strip(),
+ 129:     format="%b-%y",
+ 130:     errors="coerce"
+ 131: )
+ 132: 
+ 133: print("\nIssue-date missing:",
+ 134:       int(df_model["issue_date_clean"].isna().sum()))
+ 135: 
+ 136: print(
+ 137:     "Issue range:",
+ 138:     df_model["issue_date_clean"].min(),
+ 139:     "to",
+ 140:     df_model["issue_date_clean"].max()
+ 141: )
+ 142: 
+ 143: 
+ 144: # ------------------------------------------------------------
+ 145: # F. Parse contractual term
+ 146: # ------------------------------------------------------------
+ 147: 
+ 148: term_months = (
+ 149:     df_model["term"]
+ 150:     .astype(str)
+ 151:     .str.extract(r"(\d+)")[0]
+ 152: )
+ 153: 
+ 154: df_model["term_months_clean"] = pd.to_numeric(
+ 155:     term_months,
+ 156:     errors="coerce"
+ 157: )
+ 158: 
+ 159: print("\nTerm distribution:")
+ 160: print(
+ 161:     df_model["term_months_clean"]
+ 162:     .value_counts(dropna=False)
+ 163:     .sort_index()
+ 164: )
+ 165: 
+ 166: 
+ 167: # ------------------------------------------------------------
+ 168: # G. Reconstruct maturity rule
+ 169: #
+ 170: # Verified earlier:
+ 171: # Mature if:
+ 172: #   terminal status {Fully Paid, Charged Off, Default}
+ 173: #   OR contractual follow-up >= term.
+ 174: #
+ 175: # For validation/test manuscript cohorts, April 2020 was the
+ 176: # diagnostic follow-up cutoff that reproduced exactly:
+ 177: #   validation = 27,374
+ 178: #   test       = 41,145
+ 179: #
+ 180: # We preserve that verified rule here.
+ 181: # ------------------------------------------------------------
+ 182: 
+ 183: FOLLOWUP_CUTOFF = pd.Timestamp("2020-04-01")
+ 184: 
+ 185: terminal_statuses = {
+ 186:     "Fully Paid",
+ 187:     "Charged Off",
+ 188:     "Default"
+ 189: }
+ 190: 
+ 191: months_followup = (
+ 192:     (FOLLOWUP_CUTOFF.year -
+ 193:      df_model["issue_date_clean"].dt.year) * 12
+ 194:     +
+ 195:     (FOLLOWUP_CUTOFF.month -
+ 196:      df_model["issue_date_clean"].dt.month)
+ 197: )
+ 198: 
+ 199: df_model["months_followup_to_cutoff"] = months_followup
+ 200: 
+ 201: df_model["terminal_status"] = (
+ 202:     df_model["loan_status"]
+ 203:     .astype(str)
+ 204:     .str.strip()
+ 205:     .isin(terminal_statuses)
+ 206: )
+ 207: 
+ 208: df_model["contractually_observed"] = (
+ 209:     df_model["months_followup_to_cutoff"]
+ 210:     >=
+ 211:     df_model["term_months_clean"]
+ 212: )
+ 213: 
+ 214: df_model["mature_reconstructed"] = (
+ 215:     df_model["terminal_status"]
+ 216:     |
+ 217:     df_model["contractually_observed"]
+ 218: )
+ 219: 
+ 220: 
+ 221: # ------------------------------------------------------------
+ 222: # H. Manuscript chronological split
+ 223: #
+ 224: # Train: Aug 2012 – Jun 2018
+ 225: # Val:   Jul 2018 – Mar 2019
+ 226: # Test:  Apr 2019 – Dec 2019
+ 227: # ------------------------------------------------------------
+ 228: 
+ 229: d = df_model["issue_date_clean"]
+ 230: 
+ 231: df_model["split_revised"] = np.select(
+ 232:     [
+ 233:         (d >= pd.Timestamp("2012-08-01")) &
+ 234:         (d <= pd.Timestamp("2018-06-01")),
+ 235: 
+ 236:         (d >= pd.Timestamp("2018-07-01")) &
+ 237:         (d <= pd.Timestamp("2019-03-01")),
+ 238: 
+ 239:         (d >= pd.Timestamp("2019-04-01")) &
+ 240:         (d <= pd.Timestamp("2019-12-01"))
+ 241:     ],
+ 242:     [
+ 243:         "train",
+ 244:         "val",
+ 245:         "test"
+ 246:     ],
+ 247:     default="outside"
+ 248: )
+ 249: 
+ 250: 
+ 251: # ------------------------------------------------------------
+ 252: # I. Cohort audit
+ 253: # ------------------------------------------------------------
+ 254: 
+ 255: cohort_rows = []
+ 256: 
+ 257: for split in ["train", "val", "test"]:
+ 258: 
+ 259:     s = df_model[
+ 260:         df_model["split_revised"] == split
+ 261:     ]
+ 262: 
+ 263:     m = s[
+ 264:         s["mature_reconstructed"]
+ 265:     ]
+ 266: 
+ 267:     cohort_rows.append({
+ 268:         "split": split,
+ 269:         "all_n": len(s),
+ 270:         "mature_n": len(m),
+ 271:         "mature_pct":
+ 272:             100 * len(m) / len(s)
+ 273:             if len(s) else np.nan,
+ 274:         "all_badloan_rate":
+ 275:             s["badloan"].mean(),
+ 276:         "mature_badloan_rate":
+ 277:             m["badloan"].mean()
+ 278:     })
+ 279: 
+ 280: 
+ 281: cohort_audit = pd.DataFrame(
+ 282:     cohort_rows
+ 283: )
+ 284: 
+ 285: print("\n" + "=" * 110)
+ 286: print("D. RECONSTRUCTED COHORTS")
+ 287: print("=" * 110)
+ 288: 
+ 289: print(
+ 290:     cohort_audit.to_string(
+ 291:         index=False,
+ 292:         formatters={
+ 293:             "mature_pct": "{:.4f}".format,
+ 294:             "all_badloan_rate": "{:.6f}".format,
+ 295:             "mature_badloan_rate": "{:.6f}".format
+ 296:         }
+ 297:     )
+ 298: )
+ 299: 
+ 300: 
+ 301: # ------------------------------------------------------------
+ 302: # J. Critical validation/test checks
+ 303: # ------------------------------------------------------------
+ 304: 
+ 305: val_mature_n = int(
+ 306:     cohort_audit.loc[
+ 307:         cohort_audit["split"] == "val",
+ 308:         "mature_n"
+ 309:     ].iloc[0]
+ 310: )
+ 311: 
+ 312: test_mature_n = int(
+ 313:     cohort_audit.loc[
+ 314:         cohort_audit["split"] == "test",
+ 315:         "mature_n"
+ 316:     ].iloc[0]
+ 317: )
+ 318: 
+ 319: print("\n" + "=" * 110)
+ 320: print("E. MANUSCRIPT COHORT CHECK")
+ 321: print("=" * 110)
+ 322: 
+ 323: print(
+ 324:     "Validation mature:",
+ 325:     val_mature_n,
+ 326:     "| expected 27,374 |",
+ 327:     "MATCH" if val_mature_n == 27374 else "DOES NOT MATCH"
+ 328: )
+ 329: 
+ 330: print(
+ 331:     "Test mature:",
+ 332:     test_mature_n,
+ 333:     "| expected 41,145 |",
+ 334:     "MATCH" if test_mature_n == 41145 else "DOES NOT MATCH"
+ 335: )
+ 336: 
+ 337: 
+ 338: # ------------------------------------------------------------
+ 339: # K. Final feature type audit
+ 340: # ------------------------------------------------------------
+ 341: 
+ 342: X_probe = df_model[model_features]
+ 343: 
+ 344: categorical_features = (
+ 345:     X_probe
+ 346:     .select_dtypes(
+ 347:         include=["object", "category"]
+ 348:     )
+ 349:     .columns
+ 350:     .tolist()
+ 351: )
+ 352: 
+ 353: numeric_features = [
+ 354:     c for c in model_features
+ 355:     if c not in categorical_features
+ 356: ]
+ 357: 
+ 358: print("\n" + "=" * 110)
+ 359: print("F. LOCKED REVISED FEATURE SPECIFICATION")
+ 360: print("=" * 110)
+ 361: 
+ 362: print("Total model features:", len(model_features))
+ 363: print("Numeric:", len(numeric_features))
+ 364: print("Categorical:", len(categorical_features))
+ 365: 
+ 366: print("\nCategorical features:")
+ 367: print(categorical_features)
+ 368: 
+ 369: 
+ 370: # ------------------------------------------------------------
+ 371: # L. Missingness in mature modelling cohorts
+ 372: # ------------------------------------------------------------
+ 373: 
+ 374: mature_model = df_model[
+ 375:     (df_model["split_revised"].isin(["train", "val", "test"]))
+ 376:     &
+ 377:     (df_model["mature_reconstructed"])
+ 378: ]
+ 379: 
+ 380: feature_missing = (
+ 381:     mature_model[model_features]
+ 382:     .isna()
+ 383:     .mean()
+ 384:     .mul(100)
+ 385:     .sort_values(ascending=False)
+ 386:     .rename("missing_pct")
+ 387:     .reset_index()
+ 388:     .rename(columns={"index": "feature"})
+ 389: )
+ 390: 
+ 391: print("\nTop 20 missing features in mature modelling cohorts:")
+ 392: print(
+ 393:     feature_missing.head(20).to_string(
+ 394:         index=False,
+ 395:         formatters={
+ 396:             "missing_pct": "{:.3f}".format
+ 397:         }
+ 398:     )
+ 399: )
+ 400: 
+ 401: 
+ 402: # ------------------------------------------------------------
+ 403: # M. Save reproducibility outputs
+ 404: # ------------------------------------------------------------
+ 405: 
+ 406: cohort_audit.to_csv(
+ 407:     OUTPUT_DIR /
+ 408:     "cell26_revised_cohort_audit.csv",
+ 409:     index=False
+ 410: )
+ 411: 
+ 412: pd.DataFrame({
+ 413:     "feature": model_features,
+ 414:     "type": [
+ 415:         "categorical"
+ 416:         if c in categorical_features
+ 417:         else "numeric"
+ 418:         for c in model_features
+ 419:     ]
+ 420: }).to_csv(
+ 421:     OUTPUT_DIR /
+ 422:     "cell26_locked_feature_specification.csv",
+ 423:     index=False
+ 424: )
+ 425: 
+ 426: feature_missing.to_csv(
+ 427:     OUTPUT_DIR /
+ 428:     "cell26_feature_missingness.csv",
+ 429:     index=False
+ 430: )
+ 431: 
+ 432: print("\nSaved Cell 26 outputs to:")
+ 433: print(OUTPUT_DIR)
+
+===========================================================================
+NOTEBOOK CELL INDEX: 28
+===========================================================================
+   1: # ============================================================
+   2: # CELL 27 — Training-size sensitivity
+   3: #
+   4: # Reviewer question:
+   5: #   Does the 180,000-loan training subset materially affect
+   6: #   model performance / model ranking?
+   7: #
+   8: # Models:
+   9: #   1. Logistic regression via SGD
+  10: #   2. HistGradientBoosting
+  11: #   3. MLP
+  12: #
+  13: # Training sizes:
+  14: #   180k, 360k, 540k, full mature training cohort
+  15: #
+  16: # Validation and test cohorts remain FIXED.
+  17: #
+  18: # IMPORTANT:
+  19: #   This is a sensitivity analysis, not an attempt to recreate
+  20: #   unsupported historical manuscript numbers exactly.
+  21: # ============================================================
+  22: 
+  23: import gc
+  24: import time
+  25: import warnings
+  26: import numpy as np
+  27: import pandas as pd
+  28: 
+  29: from sklearn.compose import ColumnTransformer
+  30: from sklearn.preprocessing import (
+  31:     OneHotEncoder,
+  32:     StandardScaler
+  33: )
+  34: from sklearn.impute import SimpleImputer
+  35: from sklearn.pipeline import Pipeline
+  36: 
+  37: from sklearn.linear_model import SGDClassifier
+  38: from sklearn.ensemble import HistGradientBoostingClassifier
+  39: from sklearn.neural_network import MLPClassifier
+  40: 
+  41: from sklearn.metrics import (
+  42:     roc_auc_score,
+  43:     brier_score_loss,
+  44:     log_loss
+  45: )
+  46: 
+  47: warnings.filterwarnings("ignore")
+  48: 
+  49: 
+  50: # ------------------------------------------------------------
+  51: # A. Construct fixed mature cohorts
+  52: # ------------------------------------------------------------
+  53: 
+  54: train_df = df_model[
+  55:     (df_model["split_revised"] == "train") &
+  56:     (df_model["mature_reconstructed"])
+  57: ].copy()
+  58: 
+  59: val_df = df_model[
+  60:     (df_model["split_revised"] == "val") &
+  61:     (df_model["mature_reconstructed"])
+  62: ].copy()
+  63: 
+  64: test_df = df_model[
+  65:     (df_model["split_revised"] == "test") &
+  66:     (df_model["mature_reconstructed"])
+  67: ].copy()
+  68: 
+  69: 
+  70: # Binary target
+  71: for frame in [train_df, val_df, test_df]:
+  72: 
+  73:     frame["y"] = (
+  74:         pd.to_numeric(
+  75:             frame["badloan"],
+  76:             errors="coerce"
+  77:         )
+  78:         .fillna(0)
+  79:         .astype(int)
+  80:     )
+  81: 
+  82: 
+  83: print("=" * 110)
+  84: print("A. FIXED MODELLING COHORTS")
+  85: print("=" * 110)
+  86: 
+  87: print(
+  88:     "Train mature:",
+  89:     f"{len(train_df):,}",
+  90:     "| event rate:",
+  91:     f"{train_df['y'].mean():.6f}"
+  92: )
+  93: 
+  94: print(
+  95:     "Validation mature:",
+  96:     f"{len(val_df):,}",
+  97:     "| event rate:",
+  98:     f"{val_df['y'].mean():.6f}"
+  99: )
+ 100: 
+ 101: print(
+ 102:     "Test mature:",
+ 103:     f"{len(test_df):,}",
+ 104:     "| event rate:",
+ 105:     f"{test_df['y'].mean():.6f}"
+ 106: )
+ 107: 
+ 108: 
+ 109: # ------------------------------------------------------------
+ 110: # B. Remove problematic free-text/high-cardinality identifiers
+ 111: #
+ 112: # These fields are not suitable for ordinary one-hot modelling
+ 113: # and can create enormous sparse matrices.
+ 114: #
+ 115: # They are excluded transparently here.
+ 116: # ------------------------------------------------------------
+ 117: 
+ 118: HIGH_CARDINALITY_TEXT = [
+ 119:     "emp_title",
+ 120:     "desc",
+ 121:     "title"
+ 122: ]
+ 123: 
+ 124: features_27 = [
+ 125:     c for c in model_features
+ 126:     if c not in HIGH_CARDINALITY_TEXT
+ 127: ]
+ 128: 
+ 129: categorical_27 = [
+ 130:     c for c in categorical_features
+ 131:     if c in features_27
+ 132: ]
+ 133: 
+ 134: numeric_27 = [
+ 135:     c for c in features_27
+ 136:     if c not in categorical_27
+ 137: ]
+ 138: 
+ 139: 
+ 140: print("\n" + "=" * 110)
+ 141: print("B. REVISED TRAINING FEATURE SET")
+ 142: print("=" * 110)
+ 143: 
+ 144: print(
+ 145:     "Locked Cell 26 features:",
+ 146:     len(model_features)
+ 147: )
+ 148: 
+ 149: print(
+ 150:     "High-cardinality free-text exclusions:",
+ 151:     HIGH_CARDINALITY_TEXT
+ 152: )
+ 153: 
+ 154: print(
+ 155:     "Features entering models:",
+ 156:     len(features_27)
+ 157: )
+ 158: 
+ 159: print(
+ 160:     "Numeric:",
+ 161:     len(numeric_27)
+ 162: )
+ 163: 
+ 164: print(
+ 165:     "Categorical:",
+ 166:     len(categorical_27)
+ 167: )
+ 168: 
+ 169: 
+ 170: # ------------------------------------------------------------
+ 171: # C. Preprocessing
+ 172: #
+ 173: # Numeric:
+ 174: #   median imputation + standardisation
+ 175: #
+ 176: # Categorical:
+ 177: #   most-frequent imputation + one-hot encoding
+ 178: #
+ 179: # max_categories limits uncontrolled cardinality.
+ 180: # ------------------------------------------------------------
+ 181: 
+ 182: numeric_pipe = Pipeline([
+ 183:     (
+ 184:         "imputer",
+ 185:         SimpleImputer(strategy="median")
+ 186:     ),
+ 187:     (
+ 188:         "scale",
+ 189:         StandardScaler()
+ 190:     )
+ 191: ])
+ 192: 
+ 193: categorical_pipe = Pipeline([
+ 194:     (
+ 195:         "imputer",
+ 196:         SimpleImputer(
+ 197:             strategy="most_frequent"
+ 198:         )
+ 199:     ),
+ 200:     (
+ 201:         "onehot",
+ 202:         OneHotEncoder(
+ 203:             handle_unknown="ignore",
+ 204:             max_categories=50,
+ 205:             sparse_output=False
+ 206:         )
+ 207:     )
+ 208: ])
+ 209: 
+ 210: preprocessor = ColumnTransformer(
+ 211:     transformers=[
+ 212:         (
+ 213:             "num",
+ 214:             numeric_pipe,
+ 215:             numeric_27
+ 216:         ),
+ 217:         (
+ 218:             "cat",
+ 219:             categorical_pipe,
+ 220:             categorical_27
+ 221:         )
+ 222:     ],
+ 223:     remainder="drop"
+ 224: )
+ 225: 
+ 226: 
+ 227: # ------------------------------------------------------------
+ 228: # D. Fit preprocessing ONLY on mature training cohort
+ 229: # ------------------------------------------------------------
+ 230: 
+ 231: print("\n" + "=" * 110)
+ 232: print("C. FITTING PREPROCESSOR")
+ 233: print("=" * 110)
+ 234: 
+ 235: t0 = time.time()
+ 236: 
+ 237: preprocessor.fit(
+ 238:     train_df[features_27]
+ 239: )
+ 240: 
+ 241: print(
+ 242:     "Preprocessor fitted in",
+ 243:     f"{time.time() - t0:.1f}",
+ 244:     "seconds"
+ 245: )
+ 246: 
+ 247: 
+ 248: # ------------------------------------------------------------
+ 249: # E. Transform fixed validation and test sets once
+ 250: # ------------------------------------------------------------
+ 251: 
+ 252: print("\nTransforming validation/test...")
+ 253: 
+ 254: X_val = preprocessor.transform(
+ 255:     val_df[features_27]
+ 256: ).astype(np.float32)
+ 257: 
+ 258: X_test = preprocessor.transform(
+ 259:     test_df[features_27]
+ 260: ).astype(np.float32)
+ 261: 
+ 262: y_val = val_df["y"].to_numpy()
+ 263: y_test = test_df["y"].to_numpy()
+ 264: 
+ 265: print(
+ 266:     "Validation matrix:",
+ 267:     X_val.shape
+ 268: )
+ 269: 
+ 270: print(
+ 271:     "Test matrix:",
+ 272:     X_test.shape
+ 273: )
+ 274: 
+ 275: 
+ 276: # ------------------------------------------------------------
+ 277: # F. Nested training samples
+ 278: #
+ 279: # A single deterministic permutation ensures:
+ 280: # 180k ⊂ 360k ⊂ 540k ⊂ full
+ 281: # ------------------------------------------------------------
+ 282: 
+ 283: RANDOM_SEED = 42
+ 284: 
+ 285: rng = np.random.default_rng(
+ 286:     RANDOM_SEED
+ 287: )
+ 288: 
+ 289: permutation = rng.permutation(
+ 290:     len(train_df)
+ 291: )
+ 292: 
+ 293: training_sizes = [
+ 294:     180_000,
+ 295:     360_000,
+ 296:     540_000,
+ 297:     len(train_df)
+ 298: ]
+ 299: 
+ 300: 
+ 301: # ------------------------------------------------------------
+ 302: # G. Model factory
+ 303: # ------------------------------------------------------------
+ 304: 
+ 305: def make_models():
+ 306: 
+ 307:     return {
+ 308:         "Logistic_SGD":
+ 309:             SGDClassifier(
+ 310:                 loss="log_loss",
+ 311:                 penalty="l2",
+ 312:                 alpha=1e-5,
+ 313:                 max_iter=100,
+ 314:                 tol=1e-4,
+ 315:                 random_state=42,
+ 316:                 n_jobs=-1
+ 317:             ),
+ 318: 
+ 319:         "HistGB":
+ 320:             HistGradientBoostingClassifier(
+ 321:                 max_depth=6,
+ 322:                 learning_rate=0.05,
+ 323:                 max_iter=300,
+ 324:                 random_state=42
+ 325:             ),
+ 326: 
+ 327:         "MLP":
+ 328:             MLPClassifier(
+ 329:                 hidden_layer_sizes=(128, 64),
+ 330:                 activation="relu",
+ 331:                 solver="adam",
+ 332:                 max_iter=50,
+ 333:                 early_stopping=True,
+ 334:                 validation_fraction=0.10,
+ 335:                 n_iter_no_change=5,
+ 336:                 random_state=42
+ 337:             )
+ 338:     }
+ 339: 
+ 340: 
+ 341: # ------------------------------------------------------------
+ 342: # H. Training-size sensitivity
+ 343: # ------------------------------------------------------------
+ 344: 
+ 345: results_27 = []
+ 346: 
+ 347: prediction_store_27 = {}
+ 348: 
+ 349: print("\n" + "=" * 110)
+ 350: print("D. TRAINING-SIZE SENSITIVITY")
+ 351: print("=" * 110)
+ 352: 
+ 353: 
+ 354: for n_train in training_sizes:
+ 355: 
+ 356:     print("\n" + "-" * 110)
+ 357:     print(
+ 358:         "Training size:",
+ 359:         f"{n_train:,}"
+ 360:     )
+ 361:     print("-" * 110)
+ 362: 
+ 363:     idx = permutation[:n_train]
+ 364: 
+ 365:     subset = train_df.iloc[idx]
+ 366: 
+ 367:     print("Transforming training subset...")
+ 368: 
+ 369:     transform_start = time.time()
+ 370: 
+ 371:     X_train = preprocessor.transform(
+ 372:         subset[features_27]
+ 373:     ).astype(np.float32)
+ 374: 
+ 375:     y_train = (
+ 376:         subset["y"]
+ 377:         .to_numpy()
+ 378:     )
+ 379: 
+ 380:     print(
+ 381:         "Training matrix:",
+ 382:         X_train.shape,
+ 383:         "| transform seconds:",
+ 384:         f"{time.time() - transform_start:.1f}"
+ 385:     )
+ 386: 
+ 387:     print(
+ 388:         "Training event rate:",
+ 389:         f"{y_train.mean():.6f}"
+ 390:     )
+ 391: 
+ 392:     models = make_models()
+ 393: 
+ 394:     for model_name, model in models.items():
+ 395: 
+ 396:         print(
+ 397:             f"\n  Fitting {model_name}..."
+ 398:         )
+ 399: 
+ 400:         start = time.time()
+ 401: 
+ 402:         model.fit(
+ 403:             X_train,
+ 404:             y_train
+ 405:         )
+ 406: 
+ 407:         fit_seconds = (
+ 408:             time.time() - start
+ 409:         )
+ 410: 
+ 411:         p_val = model.predict_proba(
+ 412:             X_val
+ 413:         )[:, 1]
+ 414: 
+ 415:         p_test = model.predict_proba(
+ 416:             X_test
+ 417:         )[:, 1]
+ 418: 
+ 419:         val_auc = roc_auc_score(
+ 420:             y_val,
+ 421:             p_val
+ 422:         )
+ 423: 
+ 424:         test_auc = roc_auc_score(
+ 425:             y_test,
+ 426:             p_test
+ 427:         )
+ 428: 
+ 429:         val_brier = brier_score_loss(
+ 430:             y_val,
+ 431:             p_val
+ 432:         )
+ 433: 
+ 434:         test_brier = brier_score_loss(
+ 435:             y_test,
+ 436:             p_test
+ 437:         )
+ 438: 
+ 439:         val_logloss = log_loss(
+ 440:             y_val,
+ 441:             p_val,
+ 442:             labels=[0, 1]
+ 443:         )
+ 444: 
+ 445:         test_logloss = log_loss(
+ 446:             y_test,
+ 447:             p_test,
+ 448:             labels=[0, 1]
+ 449:         )
+ 450: 
+ 451:         results_27.append({
+ 452:             "training_n": n_train,
+ 453:             "model": model_name,
+ 454:             "train_event_rate":
+ 455:                 y_train.mean(),
+ 456:             "val_auc":
+ 457:                 val_auc,
+ 458:             "test_auc":
+ 459:                 test_auc,
+ 460:             "val_brier":
+ 461:                 val_brier,
+ 462:             "test_brier":
+ 463:                 test_brier,
+ 464:             "val_logloss":
+ 465:                 val_logloss,
+ 466:             "test_logloss":
+ 467:                 test_logloss,
+ 468:             "fit_seconds":
+ 469:                 fit_seconds
+ 470:         })
+ 471: 
+ 472:         prediction_store_27[
+ 473:             (n_train, model_name)
+ 474:         ] = {
+ 475:             "val": p_val.copy(),
+ 476:             "test": p_test.copy()
+ 477:         }
+ 478: 
+ 479:         print(
+ 480:             f"    Val AUC  : {val_auc:.6f}"
+ 481:         )
+ 482: 
+ 483:         print(
+ 484:             f"    Test AUC : {test_auc:.6f}"
+ 485:         )
+ 486: 
+ 487:         print(
+ 488:             f"    Test Brier: {test_brier:.6f}"
+ 489:         )
+ 490: 
+ 491:         print(
+ 492:             f"    Test log loss: {test_logloss:.6f}"
+ 493:         )
+ 494: 
+ 495:         print(
+ 496:             f"    Fit time: {fit_seconds:.1f} sec"
+ 497:         )
+ 498: 
+ 499:     del X_train
+ 500:     gc.collect()
+ 501: 
+ 502: 
+ 503: # ------------------------------------------------------------
+ 504: # I. Results table
+ 505: # ------------------------------------------------------------
+ 506: 
+ 507: results_27 = pd.DataFrame(
+ 508:     results_27
+ 509: )
+ 510: 
+ 511: print("\n" + "=" * 110)
+ 512: print("E. COMPLETE TRAINING-SIZE RESULTS")
+ 513: print("=" * 110)
+ 514: 
+ 515: print(
+ 516:     results_27.to_string(
+ 517:         index=False,
+ 518:         formatters={
+ 519:             "train_event_rate":
+ 520:                 "{:.6f}".format,
+ 521:             "val_auc":
+ 522:                 "{:.6f}".format,
+ 523:             "test_auc":
+ 524:                 "{:.6f}".format,
+ 525:             "val_brier":
+ 526:                 "{:.6f}".format,
+ 527:             "test_brier":
+ 528:                 "{:.6f}".format,
+ 529:             "val_logloss":
+ 530:                 "{:.6f}".format,
+ 531:             "test_logloss":
+ 532:                 "{:.6f}".format,
+ 533:             "fit_seconds":
+ 534:                 "{:.1f}".format
+ 535:         }
+ 536:     )
+ 537: )
+ 538: 
+ 539: 
+ 540: # ------------------------------------------------------------
+ 541: # J. Performance change relative to 180k
+ 542: # ------------------------------------------------------------
+ 543: 
+ 544: baseline = (
+ 545:     results_27[
+ 546:         results_27["training_n"]
+ 547:         == 180_000
+ 548:     ][
+ 549:         [
+ 550:             "model",
+ 551:             "test_auc",
+ 552:             "test_brier",
+ 553:             "test_logloss"
+ 554:         ]
+ 555:     ]
+ 556:     .rename(
+ 557:         columns={
+ 558:             "test_auc":
+ 559:                 "auc_180k",
+ 560:             "test_brier":
+ 561:                 "brier_180k",
+ 562:             "test_logloss":
+ 563:                 "logloss_180k"
+ 564:         }
+ 565:     )
+ 566: )
+ 567: 
+ 568: delta_27 = (
+ 569:     results_27
+ 570:     .merge(
+ 571:         baseline,
+ 572:         on="model",
+ 573:         how="left"
+ 574:     )
+ 575: )
+ 576: 
+ 577: delta_27["delta_auc_vs_180k"] = (
+ 578:     delta_27["test_auc"]
+ 579:     -
+ 580:     delta_27["auc_180k"]
+ 581: )
+ 582: 
+ 583: delta_27["delta_brier_vs_180k"] = (
+ 584:     delta_27["test_brier"]
+ 585:     -
+ 586:     delta_27["brier_180k"]
+ 587: )
+ 588: 
+ 589: delta_27["delta_logloss_vs_180k"] = (
+ 590:     delta_27["test_logloss"]
+ 591:     -
+ 592:     delta_27["logloss_180k"]
+ 593: )
+ 594: 
+ 595: 
+ 596: print("\n" + "=" * 110)
+ 597: print("F. CHANGE RELATIVE TO 180k TRAINING SAMPLE")
+ 598: print("=" * 110)
+ 599: 
+ 600: print(
+ 601:     delta_27[
+ 602:         [
+ 603:             "training_n",
+ 604:             "model",
+ 605:             "test_auc",
+ 606:             "delta_auc_vs_180k",
+ 607:             "test_brier",
+ 608:             "delta_brier_vs_180k",
+ 609:             "test_logloss",
+ 610:             "delta_logloss_vs_180k"
+ 611:         ]
+ 612:     ].to_string(
+ 613:         index=False,
+ 614:         formatters={
+ 615:             "test_auc":
+ 616:                 "{:.6f}".format,
+ 617:             "delta_auc_vs_180k":
+ 618:                 "{:+.6f}".format,
+ 619:             "test_brier":
+ 620:                 "{:.6f}".format,
+ 621:             "delta_brier_vs_180k":
+ 622:                 "{:+.6f}".format,
+ 623:             "test_logloss":
+ 624:                 "{:.6f}".format,
+ 625:             "delta_logloss_vs_180k":
+ 626:                 "{:+.6f}".format
+ 627:         }
+ 628:     )
+ 629: )
+ 630: 
+ 631: 
+ 632: # ------------------------------------------------------------
+ 633: # K. Save results
+ 634: # ------------------------------------------------------------
+ 635: 
+ 636: results_27.to_csv(
+ 637:     OUTPUT_DIR /
+ 638:     "cell27_training_size_sensitivity.csv",
+ 639:     index=False
+ 640: )
+ 641: 
+ 642: delta_27.to_csv(
+ 643:     OUTPUT_DIR /
+ 644:     "cell27_training_size_deltas.csv",
+ 645:     index=False
+ 646: )
+ 647: 
+ 648: 
+ 649: # Save fixed labels for later paired bootstrap
+ 650: np.save(
+ 651:     OUTPUT_DIR /
+ 652:     "cell27_y_val.npy",
+ 653:     y_val
+ 654: )
+ 655: 
+ 656: np.save(
+ 657:     OUTPUT_DIR /
+ 658:     "cell27_y_test.npy",
+ 659:     y_test
+ 660: )
+ 661: 
+ 662: 
+ 663: # Save test/validation probabilities
+ 664: for (n_train, model_name), preds in prediction_store_27.items():
+ 665: 
+ 666:     safe_model = (
+ 667:         model_name
+ 668:         .replace(" ", "_")
+ 669:     )
+ 670: 
+ 671:     np.save(
+ 672:         OUTPUT_DIR /
+ 673:         f"cell27_{n_train}_{safe_model}_val_pred.npy",
+ 674:         preds["val"]
+ 675:     )
+ 676: 
+ 677:     np.save(
+ 678:         OUTPUT_DIR /
+ 679:         f"cell27_{n_train}_{safe_model}_test_pred.npy",
+ 680:         preds["test"]
+ 681:     )
+ 682: 
+ 683: 
+ 684: print("\nSaved Cell 27 results and predictions to:")
+ 685: print(OUTPUT_DIR)
+ 686: 
+ 687: print(
+ 688:     "\nIMPORTANT: Do not interpret 'no capacity premium' yet."
+ 689: )
+ 690: 
+ 691: print(
+ 692:     "The next analysis will use these SAME test predictions "
+ 693:     "for paired bootstrap model comparisons."
+ 694: )
+
+===========================================================================
+NOTEBOOK CELL INDEX: 29
+===========================================================================
+   1: # ============================================================
+   2: # CELL 28 — Paired bootstrap model comparison
+   3: #
+   4: # Reviewer requirement:
+   5: #   Paired statistical comparison of Logistic vs HistGB vs MLP
+   6: #   with confidence intervals for performance differences.
+   7: #
+   8: # Uses SAME test observations and predictions from Cell 27.
+   9: # NO RETRAINING.
+  10: #
+  11: # Metrics:
+  12: #   ROC-AUC difference
+  13: #   Brier-score difference
+  14: #   Log-loss difference
+  15: #
+  16: # Bootstrap:
+  17: #   Stratified paired bootstrap
+  18: #   2,000 replicates
+  19: #   seed = 2026
+  20: # ============================================================
+  21: 
+  22: import numpy as np
+  23: import pandas as pd
+  24: 
+  25: from sklearn.metrics import (
+  26:     roc_auc_score,
+  27:     brier_score_loss,
+  28:     log_loss
+  29: )
+  30: 
+  31: 
+  32: # ------------------------------------------------------------
+  33: # A. Load fixed test labels
+  34: # ------------------------------------------------------------
+  35: 
+  36: y = np.load(
+  37:     OUTPUT_DIR /
+  38:     "cell27_y_test.npy"
+  39: ).astype(int)
+  40: 
+  41: print("=" * 110)
+  42: print("A. FIXED TEST COHORT")
+  43: print("=" * 110)
+  44: 
+  45: print("N:", f"{len(y):,}")
+  46: print("Defaults:", f"{y.sum():,}")
+  47: print("Non-defaults:", f"{(y == 0).sum():,}")
+  48: print("Default rate:", f"{y.mean():.6f}")
+  49: 
+  50: 
+  51: # ------------------------------------------------------------
+  52: # B. Training sizes to compare
+  53: #
+  54: # 180k = manuscript-motivated sensitivity point
+  55: # full = revised maximum-data specification
+  56: # ------------------------------------------------------------
+  57: 
+  58: FULL_N = 1_304_058
+  59: 
+  60: sizes_to_compare = [
+  61:     180_000,
+  62:     FULL_N
+  63: ]
+  64: 
+  65: models = [
+  66:     "Logistic_SGD",
+  67:     "HistGB",
+  68:     "MLP"
+  69: ]
+  70: 
+  71: pairs = [
+  72:     ("Logistic_SGD", "HistGB"),
+  73:     ("Logistic_SGD", "MLP"),
+  74:     ("HistGB", "MLP")
+  75: ]
+  76: 
+  77: 
+  78: # ------------------------------------------------------------
+  79: # C. Load predictions
+  80: # ------------------------------------------------------------
+  81: 
+  82: pred = {}
+  83: 
+  84: for n_train in sizes_to_compare:
+  85: 
+  86:     for model in models:
+  87: 
+  88:         path = (
+  89:             OUTPUT_DIR /
+  90:             f"cell27_{n_train}_{model}_test_pred.npy"
+  91:         )
+  92: 
+  93:         pred[(n_train, model)] = np.load(path)
+  94: 
+  95:         assert len(pred[(n_train, model)]) == len(y)
+  96: 
+  97: 
+  98: print("\nPredictions loaded successfully.")
+  99: 
+ 100: 
+ 101: # ------------------------------------------------------------
+ 102: # D. Original point estimates
+ 103: # ------------------------------------------------------------
+ 104: 
+ 105: point_rows = []
+ 106: 
+ 107: for n_train in sizes_to_compare:
+ 108: 
+ 109:     for model in models:
+ 110: 
+ 111:         p = pred[(n_train, model)]
+ 112: 
+ 113:         point_rows.append({
+ 114:             "training_n": n_train,
+ 115:             "model": model,
+ 116:             "auc": roc_auc_score(y, p),
+ 117:             "brier": brier_score_loss(y, p),
+ 118:             "logloss": log_loss(
+ 119:                 y,
+ 120:                 p,
+ 121:                 labels=[0, 1]
+ 122:             )
+ 123:         })
+ 124: 
+ 125: 
+ 126: point_df = pd.DataFrame(point_rows)
+ 127: 
+ 128: print("\n" + "=" * 110)
+ 129: print("B. ORIGINAL TEST PERFORMANCE")
+ 130: print("=" * 110)
+ 131: 
+ 132: print(
+ 133:     point_df.to_string(
+ 134:         index=False,
+ 135:         formatters={
+ 136:             "auc": "{:.6f}".format,
+ 137:             "brier": "{:.6f}".format,
+ 138:             "logloss": "{:.6f}".format
+ 139:         }
+ 140:     )
+ 141: )
+ 142: 
+ 143: 
+ 144: # ------------------------------------------------------------
+ 145: # E. Stratified paired bootstrap indices
+ 146: #
+ 147: # Same sampled observations are used for every model in each
+ 148: # replicate, preserving the paired comparison.
+ 149: # ------------------------------------------------------------
+ 150: 
+ 151: pos_idx = np.flatnonzero(y == 1)
+ 152: neg_idx = np.flatnonzero(y == 0)
+ 153: 
+ 154: n_pos = len(pos_idx)
+ 155: n_neg = len(neg_idx)
+ 156: 
+ 157: B = 2000
+ 158: rng = np.random.default_rng(2026)
+ 159: 
+ 160: print("\n" + "=" * 110)
+ 161: print("C. PAIRED STRATIFIED BOOTSTRAP")
+ 162: print("=" * 110)
+ 163: 
+ 164: print("Replicates:", B)
+ 165: print("Positive observations:", n_pos)
+ 166: print("Negative observations:", n_neg)
+ 167: 
+ 168: 
+ 169: # ------------------------------------------------------------
+ 170: # F. Bootstrap comparisons
+ 171: #
+ 172: # Difference convention:
+ 173: #   AUC difference    = model_A - model_B
+ 174: #
+ 175: #   Brier difference  = model_A - model_B
+ 176: #   Log-loss difference = model_A - model_B
+ 177: #
+ 178: # Therefore:
+ 179: #   AUC > 0 favours model A.
+ 180: #   Brier/log-loss < 0 favours model A.
+ 181: # ------------------------------------------------------------
+ 182: 
+ 183: boot_store = {}
+ 184: 
+ 185: for n_train in sizes_to_compare:
+ 186: 
+ 187:     for model_a, model_b in pairs:
+ 188: 
+ 189:         key = (
+ 190:             n_train,
+ 191:             model_a,
+ 192:             model_b
+ 193:         )
+ 194: 
+ 195:         boot_store[key] = {
+ 196:             "auc_diff": np.empty(B),
+ 197:             "brier_diff": np.empty(B),
+ 198:             "logloss_diff": np.empty(B)
+ 199:         }
+ 200: 
+ 201: 
+ 202: for b in range(B):
+ 203: 
+ 204:     sampled_pos = rng.choice(
+ 205:         pos_idx,
+ 206:         size=n_pos,
+ 207:         replace=True
+ 208:     )
+ 209: 
+ 210:     sampled_neg = rng.choice(
+ 211:         neg_idx,
+ 212:         size=n_neg,
+ 213:         replace=True
+ 214:     )
+ 215: 
+ 216:     idx = np.concatenate([
+ 217:         sampled_pos,
+ 218:         sampled_neg
+ 219:     ])
+ 220: 
+ 221:     y_b = y[idx]
+ 222: 
+ 223:     for n_train in sizes_to_compare:
+ 224: 
+ 225:         # calculate metrics once per model/replicate
+ 226:         metrics_b = {}
+ 227: 
+ 228:         for model in models:
+ 229: 
+ 230:             p_b = pred[(n_train, model)][idx]
+ 231: 
+ 232:             metrics_b[model] = {
+ 233:                 "auc":
+ 234:                     roc_auc_score(
+ 235:                         y_b,
+ 236:                         p_b
+ 237:                     ),
+ 238: 
+ 239:                 "brier":
+ 240:                     brier_score_loss(
+ 241:                         y_b,
+ 242:                         p_b
+ 243:                     ),
+ 244: 
+ 245:                 "logloss":
+ 246:                     log_loss(
+ 247:                         y_b,
+ 248:                         p_b,
+ 249:                         labels=[0, 1]
+ 250:                     )
+ 251:             }
+ 252: 
+ 253:         for model_a, model_b in pairs:
+ 254: 
+ 255:             store = boot_store[
+ 256:                 (
+ 257:                     n_train,
+ 258:                     model_a,
+ 259:                     model_b
+ 260:                 )
+ 261:             ]
+ 262: 
+ 263:             store["auc_diff"][b] = (
+ 264:                 metrics_b[model_a]["auc"]
+ 265:                 -
+ 266:                 metrics_b[model_b]["auc"]
+ 267:             )
+ 268: 
+ 269:             store["brier_diff"][b] = (
+ 270:                 metrics_b[model_a]["brier"]
+ 271:                 -
+ 272:                 metrics_b[model_b]["brier"]
+ 273:             )
+ 274: 
+ 275:             store["logloss_diff"][b] = (
+ 276:                 metrics_b[model_a]["logloss"]
+ 277:                 -
+ 278:                 metrics_b[model_b]["logloss"]
+ 279:             )
+ 280: 
+ 281:     if (b + 1) % 250 == 0:
+ 282:         print(
+ 283:             f"Completed {b + 1:,}/{B:,} bootstrap replicates"
+ 284:         )
+ 285: 
+ 286: 
+ 287: # ------------------------------------------------------------
+ 288: # G. Summarise paired differences
+ 289: # ------------------------------------------------------------
+ 290: 
+ 291: summary_rows = []
+ 292: 
+ 293: for n_train in sizes_to_compare:
+ 294: 
+ 295:     for model_a, model_b in pairs:
+ 296: 
+ 297:         pa = pred[(n_train, model_a)]
+ 298:         pb = pred[(n_train, model_b)]
+ 299: 
+ 300:         original_auc_diff = (
+ 301:             roc_auc_score(y, pa)
+ 302:             -
+ 303:             roc_auc_score(y, pb)
+ 304:         )
+ 305: 
+ 306:         original_brier_diff = (
+ 307:             brier_score_loss(y, pa)
+ 308:             -
+ 309:             brier_score_loss(y, pb)
+ 310:         )
+ 311: 
+ 312:         original_logloss_diff = (
+ 313:             log_loss(y, pa, labels=[0, 1])
+ 314:             -
+ 315:             log_loss(y, pb, labels=[0, 1])
+ 316:         )
+ 317: 
+ 318:         store = boot_store[
+ 319:             (
+ 320:                 n_train,
+ 321:                 model_a,
+ 322:                 model_b
+ 323:             )
+ 324:         ]
+ 325: 
+ 326:         auc_low, auc_high = np.percentile(
+ 327:             store["auc_diff"],
+ 328:             [2.5, 97.5]
+ 329:         )
+ 330: 
+ 331:         brier_low, brier_high = np.percentile(
+ 332:             store["brier_diff"],
+ 333:             [2.5, 97.5]
+ 334:         )
+ 335: 
+ 336:         log_low, log_high = np.percentile(
+ 337:             store["logloss_diff"],
+ 338:             [2.5, 97.5]
+ 339:         )
+ 340: 
+ 341:         # Two-sided bootstrap sign-based p-value.
+ 342:         # Add-one correction prevents zero p-values.
+ 343:         auc_le_zero = np.sum(
+ 344:             store["auc_diff"] <= 0
+ 345:         )
+ 346: 
+ 347:         auc_ge_zero = np.sum(
+ 348:             store["auc_diff"] >= 0
+ 349:         )
+ 350: 
+ 351:         auc_p = min(
+ 352:             1.0,
+ 353:             2 * min(
+ 354:                 (auc_le_zero + 1) / (B + 1),
+ 355:                 (auc_ge_zero + 1) / (B + 1)
+ 356:             )
+ 357:         )
+ 358: 
+ 359:         summary_rows.append({
+ 360:             "training_n": n_train,
+ 361:             "model_A": model_a,
+ 362:             "model_B": model_b,
+ 363: 
+ 364:             "auc_diff_A_minus_B":
+ 365:                 original_auc_diff,
+ 366:             "auc_ci_low":
+ 367:                 auc_low,
+ 368:             "auc_ci_high":
+ 369:                 auc_high,
+ 370:             "auc_bootstrap_p":
+ 371:                 auc_p,
+ 372: 
+ 373:             "brier_diff_A_minus_B":
+ 374:                 original_brier_diff,
+ 375:             "brier_ci_low":
+ 376:                 brier_low,
+ 377:             "brier_ci_high":
+ 378:                 brier_high,
+ 379: 
+ 380:             "logloss_diff_A_minus_B":
+ 381:                 original_logloss_diff,
+ 382:             "logloss_ci_low":
+ 383:                 log_low,
+ 384:             "logloss_ci_high":
+ 385:                 log_high
+ 386:         })
+ 387: 
+ 388: 
+ 389: paired_summary = pd.DataFrame(
+ 390:     summary_rows
+ 391: )
+ 392: 
+ 393: 
+ 394: # ------------------------------------------------------------
+ 395: # H. Print reviewer-facing results
+ 396: # ------------------------------------------------------------
+ 397: 
+ 398: print("\n" + "=" * 110)
+ 399: print("D. PAIRED MODEL COMPARISONS")
+ 400: print("=" * 110)
+ 401: 
+ 402: print(
+ 403:     paired_summary.to_string(
+ 404:         index=False,
+ 405:         formatters={
+ 406:             "auc_diff_A_minus_B":
+ 407:                 "{:+.6f}".format,
+ 408:             "auc_ci_low":
+ 409:                 "{:+.6f}".format,
+ 410:             "auc_ci_high":
+ 411:                 "{:+.6f}".format,
+ 412:             "auc_bootstrap_p":
+ 413:                 "{:.6f}".format,
+ 414: 
+ 415:             "brier_diff_A_minus_B":
+ 416:                 "{:+.6f}".format,
+ 417:             "brier_ci_low":
+ 418:                 "{:+.6f}".format,
+ 419:             "brier_ci_high":
+ 420:                 "{:+.6f}".format,
+ 421: 
+ 422:             "logloss_diff_A_minus_B":
+ 423:                 "{:+.6f}".format,
+ 424:             "logloss_ci_low":
+ 425:                 "{:+.6f}".format,
+ 426:             "logloss_ci_high":
+ 427:                 "{:+.6f}".format
+ 428:         }
+ 429:     )
+ 430: )
+ 431: 
+ 432: 
+ 433: # ------------------------------------------------------------
+ 434: # I. Simple interpretation flags
+ 435: # ------------------------------------------------------------
+ 436: 
+ 437: def ci_excludes_zero(low, high):
+ 438:     return (low > 0) or (high < 0)
+ 439: 
+ 440: 
+ 441: paired_summary[
+ 442:     "auc_difference_supported"
+ 443: ] = paired_summary.apply(
+ 444:     lambda r:
+ 445:         ci_excludes_zero(
+ 446:             r["auc_ci_low"],
+ 447:             r["auc_ci_high"]
+ 448:         ),
+ 449:     axis=1
+ 450: )
+ 451: 
+ 452: 
+ 453: print("\n" + "=" * 110)
+ 454: print("E. AUC DIFFERENCE FLAGS")
+ 455: print("=" * 110)
+ 456: 
+ 457: print(
+ 458:     paired_summary[
+ 459:         [
+ 460:             "training_n",
+ 461:             "model_A",
+ 462:             "model_B",
+ 463:             "auc_diff_A_minus_B",
+ 464:             "auc_ci_low",
+ 465:             "auc_ci_high",
+ 466:             "auc_bootstrap_p",
+ 467:             "auc_difference_supported"
+ 468:         ]
+ 469:     ].to_string(
+ 470:         index=False,
+ 471:         formatters={
+ 472:             "auc_diff_A_minus_B":
+ 473:                 "{:+.6f}".format,
+ 474:             "auc_ci_low":
+ 475:                 "{:+.6f}".format,
+ 476:             "auc_ci_high":
+ 477:                 "{:+.6f}".format,
+ 478:             "auc_bootstrap_p":
+ 479:                 "{:.6f}".format
+ 480:         }
+ 481:     )
+ 482: )
+ 483: 
+ 484: 
+ 485: # ------------------------------------------------------------
+ 486: # J. Save
+ 487: # ------------------------------------------------------------
+ 488: 
+ 489: point_df.to_csv(
+ 490:     OUTPUT_DIR /
+ 491:     "cell28_test_performance_point_estimates.csv",
+ 492:     index=False
+ 493: )
+ 494: 
+ 495: paired_summary.to_csv(
+ 496:     OUTPUT_DIR /
+ 497:     "cell28_paired_bootstrap_model_comparisons.csv",
+ 498:     index=False
+ 499: )
+ 500: 
+ 501: 
+ 502: print("\nSaved Cell 28 outputs to:")
+ 503: print(OUTPUT_DIR)
+ 504: 
+ 505: print(
+ 506:     "\nDo NOT use the phrase 'no capacity premium' "
+ 507:     "until these paired results are interpreted."
+ 508: )
+
+===========================================================================
+NOTEBOOK CELL INDEX: 30
+===========================================================================
+   1: # ============================================================
+   2: # CELL 29 — Validation-only recalibration
+   3: #
+   4: # Selected model:
+   5: #   Full-training HistGB
+   6: #
+   7: # Selection basis:
+   8: #   Highest validation ROC-AUC among full-training models.
+   9: #
+  10: # Recalibration:
+  11: #   Logistic/Platt recalibration fitted ONLY on validation:
+  12: #
+  13: #   logit(Y) = a + b * logit(p_raw)
+  14: #
+  15: #   The fitted mapping is then applied unchanged to test.
+  16: #
+  17: # NO TEST INFORMATION IS USED TO FIT RECALIBRATION.
+  18: # ============================================================
+  19: 
+  20: import numpy as np
+  21: import pandas as pd
+  22: 
+  23: from sklearn.linear_model import LogisticRegression
+  24: from sklearn.metrics import (
+  25:     roc_auc_score,
+  26:     brier_score_loss,
+  27:     log_loss
+  28: )
+  29: 
+  30: 
+  31: # ------------------------------------------------------------
+  32: # A. Load fixed labels and selected-model predictions
+  33: # ------------------------------------------------------------
+  34: 
+  35: FULL_N = 1_304_058
+  36: SELECTED_MODEL = "HistGB"
+  37: 
+  38: y_val = np.load(
+  39:     OUTPUT_DIR / "cell27_y_val.npy"
+  40: ).astype(int)
+  41: 
+  42: y_test = np.load(
+  43:     OUTPUT_DIR / "cell27_y_test.npy"
+  44: ).astype(int)
+  45: 
+  46: p_val_raw = np.load(
+  47:     OUTPUT_DIR /
+  48:     f"cell27_{FULL_N}_{SELECTED_MODEL}_val_pred.npy"
+  49: )
+  50: 
+  51: p_test_raw = np.load(
+  52:     OUTPUT_DIR /
+  53:     f"cell27_{FULL_N}_{SELECTED_MODEL}_test_pred.npy"
+  54: )
+  55: 
+  56: 
+  57: print("=" * 110)
+  58: print("A. RECALIBRATION COHORTS")
+  59: print("=" * 110)
+  60: 
+  61: print(
+  62:     "Selected model:",
+  63:     SELECTED_MODEL
+  64: )
+  65: 
+  66: print(
+  67:     "Validation N:",
+  68:     f"{len(y_val):,}",
+  69:     "| event rate:",
+  70:     f"{y_val.mean():.6f}",
+  71:     "| raw mean prediction:",
+  72:     f"{p_val_raw.mean():.6f}"
+  73: )
+  74: 
+  75: print(
+  76:     "Test N:",
+  77:     f"{len(y_test):,}",
+  78:     "| event rate:",
+  79:     f"{y_test.mean():.6f}",
+  80:     "| raw mean prediction:",
+  81:     f"{p_test_raw.mean():.6f}"
+  82: )
+  83: 
+  84: 
+  85: # ------------------------------------------------------------
+  86: # B. Helpers
+  87: # ------------------------------------------------------------
+  88: 
+  89: EPS = 1e-6
+  90: 
+  91: 
+  92: def clip_prob(p):
+  93:     return np.clip(
+  94:         np.asarray(p, dtype=float),
+  95:         EPS,
+  96:         1 - EPS
+  97:     )
+  98: 
+  99: 
+ 100: def logit(p):
+ 101:     p = clip_prob(p)
+ 102:     return np.log(
+ 103:         p / (1 - p)
+ 104:     )
+ 105: 
+ 106: 
+ 107: def sigmoid(z):
+ 108:     return 1 / (
+ 109:         1 + np.exp(-z)
+ 110:     )
+ 111: 
+ 112: 
+ 113: def calibration_intercept_slope(y, p):
+ 114:     """
+ 115:     Logistic calibration model:
+ 116:         logit(Y) = intercept + slope * logit(p)
+ 117: 
+ 118:     Ideal:
+ 119:         intercept = 0
+ 120:         slope = 1
+ 121:     """
+ 122: 
+ 123:     x = logit(p).reshape(-1, 1)
+ 124: 
+ 125:     model = LogisticRegression(
+ 126:         penalty=None,
+ 127:         solver="lbfgs",
+ 128:         max_iter=2000
+ 129:     )
+ 130: 
+ 131:     model.fit(
+ 132:         x,
+ 133:         y
+ 134:     )
+ 135: 
+ 136:     return (
+ 137:         float(model.intercept_[0]),
+ 138:         float(model.coef_[0, 0])
+ 139:     )
+ 140: 
+ 141: 
+ 142: def ece_equal_width(y, p, n_bins=10):
+ 143:     """
+ 144:     Expected calibration error using 10 equal-width
+ 145:     probability bins.
+ 146:     """
+ 147: 
+ 148:     p = np.asarray(p)
+ 149:     y = np.asarray(y)
+ 150: 
+ 151:     edges = np.linspace(
+ 152:         0,
+ 153:         1,
+ 154:         n_bins + 1
+ 155:     )
+ 156: 
+ 157:     bin_id = np.digitize(
+ 158:         p,
+ 159:         edges[1:-1],
+ 160:         right=False
+ 161:     )
+ 162: 
+ 163:     ece = 0.0
+ 164: 
+ 165:     rows = []
+ 166: 
+ 167:     for b in range(n_bins):
+ 168: 
+ 169:         mask = (
+ 170:             bin_id == b
+ 171:         )
+ 172: 
+ 173:         n = int(mask.sum())
+ 174: 
+ 175:         if n == 0:
+ 176:             continue
+ 177: 
+ 178:         mean_p = float(
+ 179:             p[mask].mean()
+ 180:         )
+ 181: 
+ 182:         event_rate = float(
+ 183:             y[mask].mean()
+ 184:         )
+ 185: 
+ 186:         weight = (
+ 187:             n / len(y)
+ 188:         )
+ 189: 
+ 190:         gap = abs(
+ 191:             event_rate - mean_p
+ 192:         )
+ 193: 
+ 194:         ece += (
+ 195:             weight * gap
+ 196:         )
+ 197: 
+ 198:         rows.append({
+ 199:             "bin": b + 1,
+ 200:             "lower": edges[b],
+ 201:             "upper": edges[b + 1],
+ 202:             "n": n,
+ 203:             "mean_prediction": mean_p,
+ 204:             "event_rate": event_rate,
+ 205:             "abs_gap": gap
+ 206:         })
+ 207: 
+ 208:     return float(ece), pd.DataFrame(rows)
+ 209: 
+ 210: 
+ 211: def calibration_metrics(y, p):
+ 212: 
+ 213:     p = clip_prob(p)
+ 214: 
+ 215:     intercept, slope = (
+ 216:         calibration_intercept_slope(
+ 217:             y,
+ 218:             p
+ 219:         )
+ 220:     )
+ 221: 
+ 222:     ece, _ = ece_equal_width(
+ 223:         y,
+ 224:         p,
+ 225:         n_bins=10
+ 226:     )
+ 227: 
+ 228:     return {
+ 229:         "n": len(y),
+ 230:         "event_rate":
+ 231:             float(np.mean(y)),
+ 232:         "mean_prediction":
+ 233:             float(np.mean(p)),
+ 234:         "auc":
+ 235:             roc_auc_score(y, p),
+ 236:         "brier":
+ 237:             brier_score_loss(y, p),
+ 238:         "logloss":
+ 239:             log_loss(
+ 240:                 y,
+ 241:                 p,
+ 242:                 labels=[0, 1]
+ 243:             ),
+ 244:         "ece":
+ 245:             ece,
+ 246:         "calibration_intercept":
+ 247:             intercept,
+ 248:         "calibration_slope":
+ 249:             slope
+ 250:     }
+ 251: 
+ 252: 
+ 253: # ------------------------------------------------------------
+ 254: # C. Fit Platt/logistic recalibration ONLY on validation
+ 255: # ------------------------------------------------------------
+ 256: 
+ 257: X_cal_val = (
+ 258:     logit(p_val_raw)
+ 259:     .reshape(-1, 1)
+ 260: )
+ 261: 
+ 262: recalibrator = LogisticRegression(
+ 263:     penalty=None,
+ 264:     solver="lbfgs",
+ 265:     max_iter=2000
+ 266: )
+ 267: 
+ 268: recalibrator.fit(
+ 269:     X_cal_val,
+ 270:     y_val
+ 271: )
+ 272: 
+ 273: recal_intercept = float(
+ 274:     recalibrator.intercept_[0]
+ 275: )
+ 276: 
+ 277: recal_slope = float(
+ 278:     recalibrator.coef_[0, 0]
+ 279: )
+ 280: 
+ 281: 
+ 282: print("\n" + "=" * 110)
+ 283: print("B. VALIDATION-FITTED RECALIBRATION PARAMETERS")
+ 284: print("=" * 110)
+ 285: 
+ 286: print(
+ 287:     "Intercept a:",
+ 288:     f"{recal_intercept:.6f}"
+ 289: )
+ 290: 
+ 291: print(
+ 292:     "Slope b:",
+ 293:     f"{recal_slope:.6f}"
+ 294: )
+ 295: 
+ 296: 
+ 297: # ------------------------------------------------------------
+ 298: # D. Apply unchanged mapping
+ 299: # ------------------------------------------------------------
+ 300: 
+ 301: p_val_cal = recalibrator.predict_proba(
+ 302:     logit(p_val_raw).reshape(-1, 1)
+ 303: )[:, 1]
+ 304: 
+ 305: p_test_cal = recalibrator.predict_proba(
+ 306:     logit(p_test_raw).reshape(-1, 1)
+ 307: )[:, 1]
+ 308: 
+ 309: 
+ 310: # ------------------------------------------------------------
+ 311: # E. Before/after metrics
+ 312: # ------------------------------------------------------------
+ 313: 
+ 314: rows = []
+ 315: 
+ 316: for cohort_name, y, p_raw, p_cal in [
+ 317:     (
+ 318:         "Validation",
+ 319:         y_val,
+ 320:         p_val_raw,
+ 321:         p_val_cal
+ 322:     ),
+ 323:     (
+ 324:         "Test",
+ 325:         y_test,
+ 326:         p_test_raw,
+ 327:         p_test_cal
+ 328:     )
+ 329: ]:
+ 330: 
+ 331:     raw_metrics = calibration_metrics(
+ 332:         y,
+ 333:         p_raw
+ 334:     )
+ 335: 
+ 336:     cal_metrics = calibration_metrics(
+ 337:         y,
+ 338:         p_cal
+ 339:     )
+ 340: 
+ 341:     rows.append({
+ 342:         "cohort": cohort_name,
+ 343:         "stage": "Before",
+ 344:         **raw_metrics
+ 345:     })
+ 346: 
+ 347:     rows.append({
+ 348:         "cohort": cohort_name,
+ 349:         "stage": "After",
+ 350:         **cal_metrics
+ 351:     })
+ 352: 
+ 353: 
+ 354: calibration_table = pd.DataFrame(
+ 355:     rows
+ 356: )
+ 357: 
+ 358: 
+ 359: print("\n" + "=" * 110)
+ 360: print("C. BEFORE / AFTER CALIBRATION")
+ 361: print("=" * 110)
+ 362: 
+ 363: print(
+ 364:     calibration_table.to_string(
+ 365:         index=False,
+ 366:         formatters={
+ 367:             "event_rate":
+ 368:                 "{:.6f}".format,
+ 369:             "mean_prediction":
+ 370:                 "{:.6f}".format,
+ 371:             "auc":
+ 372:                 "{:.6f}".format,
+ 373:             "brier":
+ 374:                 "{:.6f}".format,
+ 375:             "logloss":
+ 376:                 "{:.6f}".format,
+ 377:             "ece":
+ 378:                 "{:.6f}".format,
+ 379:             "calibration_intercept":
+ 380:                 "{:+.6f}".format,
+ 381:             "calibration_slope":
+ 382:                 "{:.6f}".format
+ 383:         }
+ 384:     )
+ 385: )
+ 386: 
+ 387: 
+ 388: # ------------------------------------------------------------
+ 389: # F. Test improvement table
+ 390: # ------------------------------------------------------------
+ 391: 
+ 392: test_before = calibration_table[
+ 393:     (calibration_table["cohort"] == "Test") &
+ 394:     (calibration_table["stage"] == "Before")
+ 395: ].iloc[0]
+ 396: 
+ 397: test_after = calibration_table[
+ 398:     (calibration_table["cohort"] == "Test") &
+ 399:     (calibration_table["stage"] == "After")
+ 400: ].iloc[0]
+ 401: 
+ 402: 
+ 403: improvement = pd.DataFrame([{
+ 404:     "delta_mean_prediction":
+ 405:         test_after["mean_prediction"]
+ 406:         -
+ 407:         test_before["mean_prediction"],
+ 408: 
+ 409:     "delta_auc":
+ 410:         test_after["auc"]
+ 411:         -
+ 412:         test_before["auc"],
+ 413: 
+ 414:     "delta_brier":
+ 415:         test_after["brier"]
+ 416:         -
+ 417:         test_before["brier"],
+ 418: 
+ 419:     "delta_logloss":
+ 420:         test_after["logloss"]
+ 421:         -
+ 422:         test_before["logloss"],
+ 423: 
+ 424:     "delta_ece":
+ 425:         test_after["ece"]
+ 426:         -
+ 427:         test_before["ece"],
+ 428: 
+ 429:     "intercept_before":
+ 430:         test_before["calibration_intercept"],
+ 431: 
+ 432:     "intercept_after":
+ 433:         test_after["calibration_intercept"],
+ 434: 
+ 435:     "slope_before":
+ 436:         test_before["calibration_slope"],
+ 437: 
+ 438:     "slope_after":
+ 439:         test_after["calibration_slope"]
+ 440: }])
+ 441: 
+ 442: 
+ 443: print("\n" + "=" * 110)
+ 444: print("D. TEST CHANGE AFTER VALIDATION-ONLY RECALIBRATION")
+ 445: print("=" * 110)
+ 446: 
+ 447: print(
+ 448:     improvement.to_string(
+ 449:         index=False,
+ 450:         formatters={
+ 451:             c: "{:+.6f}".format
+ 452:             for c in improvement.columns
+ 453:         }
+ 454:     )
+ 455: )
+ 456: 
+ 457: 
+ 458: # ------------------------------------------------------------
+ 459: # G. Reliability-bin tables
+ 460: # ------------------------------------------------------------
+ 461: 
+ 462: _, val_before_bins = ece_equal_width(
+ 463:     y_val,
+ 464:     p_val_raw
+ 465: )
+ 466: 
+ 467: _, val_after_bins = ece_equal_width(
+ 468:     y_val,
+ 469:     p_val_cal
+ 470: )
+ 471: 
+ 472: _, test_before_bins = ece_equal_width(
+ 473:     y_test,
+ 474:     p_test_raw
+ 475: )
+ 476: 
+ 477: _, test_after_bins = ece_equal_width(
+ 478:     y_test,
+ 479:     p_test_cal
+ 480: )
+ 481: 
+ 482: 
+ 483: print("\n" + "=" * 110)
+ 484: print("E. TEST RELIABILITY BINS — BEFORE")
+ 485: print("=" * 110)
+ 486: 
+ 487: print(
+ 488:     test_before_bins.to_string(
+ 489:         index=False,
+ 490:         formatters={
+ 491:             "lower": "{:.2f}".format,
+ 492:             "upper": "{:.2f}".format,
+ 493:             "mean_prediction":
+ 494:                 "{:.6f}".format,
+ 495:             "event_rate":
+ 496:                 "{:.6f}".format,
+ 497:             "abs_gap":
+ 498:                 "{:.6f}".format
+ 499:         }
+ 500:     )
+ 501: )
+ 502: 
+ 503: 
+ 504: print("\n" + "=" * 110)
+ 505: print("F. TEST RELIABILITY BINS — AFTER")
+ 506: print("=" * 110)
+ 507: 
+ 508: print(
+ 509:     test_after_bins.to_string(
+ 510:         index=False,
+ 511:         formatters={
+ 512:             "lower": "{:.2f}".format,
+ 513:             "upper": "{:.2f}".format,
+ 514:             "mean_prediction":
+ 515:                 "{:.6f}".format,
+ 516:             "event_rate":
+ 517:                 "{:.6f}".format,
+ 518:             "abs_gap":
+ 519:                 "{:.6f}".format
+ 520:         }
+ 521:     )
+ 522: )
+ 523: 
+ 524: 
+ 525: # ------------------------------------------------------------
+ 526: # H. Save probabilities for threshold analysis
+ 527: # ------------------------------------------------------------
+ 528: 
+ 529: np.save(
+ 530:     OUTPUT_DIR /
+ 531:     "cell29_histgb_full_val_raw.npy",
+ 532:     p_val_raw
+ 533: )
+ 534: 
+ 535: np.save(
+ 536:     OUTPUT_DIR /
+ 537:     "cell29_histgb_full_val_recalibrated.npy",
+ 538:     p_val_cal
+ 539: )
+ 540: 
+ 541: np.save(
+ 542:     OUTPUT_DIR /
+ 543:     "cell29_histgb_full_test_raw.npy",
+ 544:     p_test_raw
+ 545: )
+ 546: 
+ 547: np.save(
+ 548:     OUTPUT_DIR /
+ 549:     "cell29_histgb_full_test_recalibrated.npy",
+ 550:     p_test_cal
+ 551: )
+ 552: 
+ 553: 
+ 554: # ------------------------------------------------------------
+ 555: # I. Save tables
+ 556: # ------------------------------------------------------------
+ 557: 
+ 558: calibration_table.to_csv(
+ 559:     OUTPUT_DIR /
+ 560:     "cell29_before_after_calibration.csv",
+ 561:     index=False
+ 562: )
+ 563: 
+ 564: improvement.to_csv(
+ 565:     OUTPUT_DIR /
+ 566:     "cell29_test_calibration_change.csv",
+ 567:     index=False
+ 568: )
+ 569: 
+ 570: val_before_bins.to_csv(
+ 571:     OUTPUT_DIR /
+ 572:     "cell29_validation_reliability_before.csv",
+ 573:     index=False
+ 574: )
+ 575: 
+ 576: val_after_bins.to_csv(
+ 577:     OUTPUT_DIR /
+ 578:     "cell29_validation_reliability_after.csv",
+ 579:     index=False
+ 580: )
+ 581: 
+ 582: test_before_bins.to_csv(
+ 583:     OUTPUT_DIR /
+ 584:     "cell29_test_reliability_before.csv",
+ 585:     index=False
+ 586: )
+ 587: 
+ 588: test_after_bins.to_csv(
+ 589:     OUTPUT_DIR /
+ 590:     "cell29_test_reliability_after.csv",
+ 591:     index=False
+ 592: )
+ 593: 
+ 594: 
+ 595: print("\nSaved Cell 29 outputs to:")
+ 596: print(OUTPUT_DIR)
+ 597: 
+ 598: print(
+ 599:     "\nNext step after inspection: "
+ 600:     "recalculate 5:1, 10:1 and 20:1 thresholds "
+ 601:     "using validation-recalibrated probabilities."
+ 602: )
+
+===========================================================================
+NOTEBOOK CELL INDEX: 31
+===========================================================================
+   1: # ============================================================
+   2: # CELL 30 — Recalibrated threshold / decision analysis
+   3: #
+   4: # Thresholds are selected ONLY on the validation cohort using
+   5: # validation-recalibrated HistGB probabilities.
+   6: #
+   7: # The selected threshold is then applied unchanged to test.
+   8: #
+   9: # Cost convention:
+  10: #   FP cost = 1
+  11: #   FN cost = {5, 10, 20}
+  12: #
+  13: # Review/flag:
+  14: #   predicted probability >= threshold
+  15: # ============================================================
+  16: 
+  17: import numpy as np
+  18: import pandas as pd
+  19: 
+  20: 
+  21: # ------------------------------------------------------------
+  22: # A. Load recalibrated probabilities and labels
+  23: # ------------------------------------------------------------
+  24: 
+  25: y_val = np.load(
+  26:     OUTPUT_DIR / "cell27_y_val.npy"
+  27: ).astype(int)
+  28: 
+  29: y_test = np.load(
+  30:     OUTPUT_DIR / "cell27_y_test.npy"
+  31: ).astype(int)
+  32: 
+  33: p_val = np.load(
+  34:     OUTPUT_DIR /
+  35:     "cell29_histgb_full_val_recalibrated.npy"
+  36: )
+  37: 
+  38: p_test = np.load(
+  39:     OUTPUT_DIR /
+  40:     "cell29_histgb_full_test_recalibrated.npy"
+  41: )
+  42: 
+  43: 
+  44: print("=" * 110)
+  45: print("A. INPUT CHECK")
+  46: print("=" * 110)
+  47: 
+  48: print(
+  49:     "Validation:",
+  50:     f"N={len(y_val):,}",
+  51:     f"default rate={y_val.mean():.6f}",
+  52:     f"mean prediction={p_val.mean():.6f}"
+  53: )
+  54: 
+  55: print(
+  56:     "Test:",
+  57:     f"N={len(y_test):,}",
+  58:     f"default rate={y_test.mean():.6f}",
+  59:     f"mean prediction={p_test.mean():.6f}"
+  60: )
+  61: 
+  62: 
+  63: # ------------------------------------------------------------
+  64: # B. Decision metrics
+  65: # ------------------------------------------------------------
+  66: 
+  67: def decision_metrics(y, p, threshold, fn_cost, fp_cost=1.0):
+  68: 
+  69:     flagged = p >= threshold
+  70: 
+  71:     tp = int(
+  72:         np.sum(
+  73:             flagged & (y == 1)
+  74:         )
+  75:     )
+  76: 
+  77:     fp = int(
+  78:         np.sum(
+  79:             flagged & (y == 0)
+  80:         )
+  81:     )
+  82: 
+  83:     tn = int(
+  84:         np.sum(
+  85:             (~flagged) & (y == 0)
+  86:         )
+  87:     )
+  88: 
+  89:     fn = int(
+  90:         np.sum(
+  91:             (~flagged) & (y == 1)
+  92:         )
+  93:     )
+  94: 
+  95:     n = len(y)
+  96: 
+  97:     positives = (
+  98:         tp + fn
+  99:     )
+ 100: 
+ 101:     flagged_n = (
+ 102:         tp + fp
+ 103:     )
+ 104: 
+ 105:     fnr = (
+ 106:         fn / positives
+ 107:         if positives > 0
+ 108:         else np.nan
+ 109:     )
+ 110: 
+ 111:     tpr = (
+ 112:         tp / positives
+ 113:         if positives > 0
+ 114:         else np.nan
+ 115:     )
+ 116: 
+ 117:     review_rate = (
+ 118:         flagged_n / n
+ 119:     )
+ 120: 
+ 121:     precision = (
+ 122:         tp / flagged_n
+ 123:         if flagged_n > 0
+ 124:         else np.nan
+ 125:     )
+ 126: 
+ 127:     cost = (
+ 128:         fn_cost * fn
+ 129:         +
+ 130:         fp_cost * fp
+ 131:     )
+ 132: 
+ 133:     no_review_cost = (
+ 134:         fn_cost
+ 135:         * positives
+ 136:     )
+ 137: 
+ 138:     net_benefit = (
+ 139:         no_review_cost
+ 140:         -
+ 141:         cost
+ 142:     )
+ 143: 
+ 144:     return {
+ 145:         "threshold": threshold,
+ 146:         "tp": tp,
+ 147:         "fp": fp,
+ 148:         "tn": tn,
+ 149:         "fn": fn,
+ 150:         "fnr": fnr,
+ 151:         "tpr": tpr,
+ 152:         "review_rate": review_rate,
+ 153:         "precision": precision,
+ 154:         "cost": cost,
+ 155:         "no_review_cost": no_review_cost,
+ 156:         "net_benefit": net_benefit
+ 157:     }
+ 158: 
+ 159: 
+ 160: # ------------------------------------------------------------
+ 161: # C. Exact validation threshold search
+ 162: #
+ 163: # For a threshold classifier, predictions change only when the
+ 164: # threshold crosses an observed predicted probability.
+ 165: #
+ 166: # We therefore evaluate all unique validation probabilities,
+ 167: # plus boundary operating points.
+ 168: # ------------------------------------------------------------
+ 169: 
+ 170: def find_cost_minimising_threshold(
+ 171:     y,
+ 172:     p,
+ 173:     fn_cost,
+ 174:     fp_cost=1.0
+ 175: ):
+ 176: 
+ 177:     order = np.argsort(
+ 178:         -p,
+ 179:         kind="mergesort"
+ 180:     )
+ 181: 
+ 182:     p_sorted = p[order]
+ 183:     y_sorted = y[order]
+ 184: 
+ 185:     total_pos = int(
+ 186:         y_sorted.sum()
+ 187:     )
+ 188: 
+ 189:     total_neg = int(
+ 190:         len(y_sorted)
+ 191:         -
+ 192:         total_pos
+ 193:     )
+ 194: 
+ 195:     cum_tp = np.cumsum(
+ 196:         y_sorted == 1
+ 197:     )
+ 198: 
+ 199:     cum_fp = np.cumsum(
+ 200:         y_sorted == 0
+ 201:     )
+ 202: 
+ 203:     # Last position for each unique probability
+ 204:     is_last_of_value = np.r_[
+ 205:         p_sorted[:-1] != p_sorted[1:],
+ 206:         True
+ 207:     ]
+ 208: 
+ 209:     positions = np.flatnonzero(
+ 210:         is_last_of_value
+ 211:     )
+ 212: 
+ 213:     thresholds = p_sorted[
+ 214:         positions
+ 215:     ]
+ 216: 
+ 217:     tp = cum_tp[
+ 218:         positions
+ 219:     ]
+ 220: 
+ 221:     fp = cum_fp[
+ 222:         positions
+ 223:     ]
+ 224: 
+ 225:     fn = (
+ 226:         total_pos
+ 227:         -
+ 228:         tp
+ 229:     )
+ 230: 
+ 231:     costs = (
+ 232:         fn_cost * fn
+ 233:         +
+ 234:         fp_cost * fp
+ 235:     )
+ 236: 
+ 237:     best_cost = costs.min()
+ 238: 
+ 239:     best_positions = np.flatnonzero(
+ 240:         costs == best_cost
+ 241:     )
+ 242: 
+ 243:     # Tie rule:
+ 244:     # choose the HIGHEST threshold among equal-cost solutions,
+ 245:     # i.e. the lower review burden.
+ 246:     best_local = best_positions[
+ 247:         np.argmax(
+ 248:             thresholds[
+ 249:                 best_positions
+ 250:             ]
+ 251:         )
+ 252:     ]
+ 253: 
+ 254:     best_threshold = float(
+ 255:         thresholds[
+ 256:             best_local
+ 257:         ]
+ 258:     )
+ 259: 
+ 260:     return (
+ 261:         best_threshold,
+ 262:         float(best_cost)
+ 263:     )
+ 264: 
+ 265: 
+ 266: # ------------------------------------------------------------
+ 267: # D. Select threshold on validation, evaluate on both cohorts
+ 268: # ------------------------------------------------------------
+ 269: 
+ 270: COST_RATIOS = [
+ 271:     5,
+ 272:     10,
+ 273:     20
+ 274: ]
+ 275: 
+ 276: rows = []
+ 277: 
+ 278: 
+ 279: print("\n" + "=" * 110)
+ 280: print("B. VALIDATION-SELECTED RECALIBRATED THRESHOLDS")
+ 281: print("=" * 110)
+ 282: 
+ 283: 
+ 284: for fn_cost in COST_RATIOS:
+ 285: 
+ 286:     threshold, validation_min_cost = (
+ 287:         find_cost_minimising_threshold(
+ 288:             y_val,
+ 289:             p_val,
+ 290:             fn_cost=fn_cost,
+ 291:             fp_cost=1.0
+ 292:         )
+ 293:     )
+ 294: 
+ 295:     val_metrics = decision_metrics(
+ 296:         y_val,
+ 297:         p_val,
+ 298:         threshold,
+ 299:         fn_cost=fn_cost
+ 300:     )
+ 301: 
+ 302:     test_metrics = decision_metrics(
+ 303:         y_test,
+ 304:         p_test,
+ 305:         threshold,
+ 306:         fn_cost=fn_cost
+ 307:     )
+ 308: 
+ 309:     print(
+ 310:         f"\nFN:FP = {fn_cost}:1"
+ 311:     )
+ 312: 
+ 313:     print(
+ 314:         f"  Selected validation threshold: "
+ 315:         f"{threshold:.6f}"
+ 316:     )
+ 317: 
+ 318:     print(
+ 319:         f"  Validation FNR: "
+ 320:         f"{val_metrics['fnr']:.6f}"
+ 321:     )
+ 322: 
+ 323:     print(
+ 324:         f"  Validation review rate: "
+ 325:         f"{val_metrics['review_rate']:.6f}"
+ 326:     )
+ 327: 
+ 328:     print(
+ 329:         f"  Test FNR: "
+ 330:         f"{test_metrics['fnr']:.6f}"
+ 331:     )
+ 332: 
+ 333:     print(
+ 334:         f"  Test review rate: "
+ 335:         f"{test_metrics['review_rate']:.6f}"
+ 336:     )
+ 337: 
+ 338:     print(
+ 339:         f"  Test precision: "
+ 340:         f"{test_metrics['precision']:.6f}"
+ 341:     )
+ 342: 
+ 343:     print(
+ 344:         f"  Test cost: "
+ 345:         f"{test_metrics['cost']:.1f}"
+ 346:     )
+ 347: 
+ 348:     print(
+ 349:         f"  Test no-review cost: "
+ 350:         f"{test_metrics['no_review_cost']:.1f}"
+ 351:     )
+ 352: 
+ 353:     print(
+ 354:         f"  Test net benefit: "
+ 355:         f"{test_metrics['net_benefit']:.1f}"
+ 356:     )
+ 357: 
+ 358:     for cohort, metrics in [
+ 359:         ("Validation", val_metrics),
+ 360:         ("Test", test_metrics)
+ 361:     ]:
+ 362: 
+ 363:         rows.append({
+ 364:             "fn_fp_ratio":
+ 365:                 f"{fn_cost}:1",
+ 366:             "fn_cost":
+ 367:                 fn_cost,
+ 368:             "fp_cost":
+ 369:                 1.0,
+ 370:             "threshold":
+ 371:                 threshold,
+ 372:             "threshold_selected_on":
+ 373:                 "Validation",
+ 374:             "cohort":
+ 375:                 cohort,
+ 376:             **{
+ 377:                 k: v
+ 378:                 for k, v in metrics.items()
+ 379:                 if k != "threshold"
+ 380:             }
+ 381:         })
+ 382: 
+ 383: 
+ 384: threshold_results = pd.DataFrame(
+ 385:     rows
+ 386: )
+ 387: 
+ 388: 
+ 389: # ------------------------------------------------------------
+ 390: # E. Reviewer-facing test table
+ 391: # ------------------------------------------------------------
+ 392: 
+ 393: test_threshold_table = (
+ 394:     threshold_results[
+ 395:         threshold_results["cohort"]
+ 396:         == "Test"
+ 397:     ]
+ 398:     .copy()
+ 399: )
+ 400: 
+ 401: 
+ 402: print("\n" + "=" * 110)
+ 403: print("C. TEST PERFORMANCE AT VALIDATION-SELECTED THRESHOLDS")
+ 404: print("=" * 110)
+ 405: 
+ 406: display_cols = [
+ 407:     "fn_fp_ratio",
+ 408:     "threshold",
+ 409:     "tp",
+ 410:     "fp",
+ 411:     "tn",
+ 412:     "fn",
+ 413:     "fnr",
+ 414:     "review_rate",
+ 415:     "precision",
+ 416:     "cost",
+ 417:     "no_review_cost",
+ 418:     "net_benefit"
+ 419: ]
+ 420: 
+ 421: print(
+ 422:     test_threshold_table[
+ 423:         display_cols
+ 424:     ].to_string(
+ 425:         index=False,
+ 426:         formatters={
+ 427:             "threshold":
+ 428:                 "{:.6f}".format,
+ 429:             "fnr":
+ 430:                 "{:.6f}".format,
+ 431:             "review_rate":
+ 432:                 "{:.6f}".format,
+ 433:             "precision":
+ 434:                 "{:.6f}".format,
+ 435:             "cost":
+ 436:                 "{:.1f}".format,
+ 437:             "no_review_cost":
+ 438:                 "{:.1f}".format,
+ 439:             "net_benefit":
+ 440:                 "{:.1f}".format
+ 441:         }
+ 442:     )
+ 443: )
+ 444: 
+ 445: 
+ 446: # ------------------------------------------------------------
+ 447: # F. Compare with ORIGINAL manuscript operating points
+ 448: #
+ 449: # These are for descriptive comparison only.
+ 450: # ------------------------------------------------------------
+ 451: 
+ 452: old_results = pd.DataFrame({
+ 453:     "fn_fp_ratio": [
+ 454:         "5:1",
+ 455:         "10:1",
+ 456:         "20:1"
+ 457:     ],
+ 458:     "old_threshold": [
+ 459:         0.1984,
+ 460:         0.0723,
+ 461:         0.0292
+ 462:     ],
+ 463:     "old_test_fnr": [
+ 464:         0.9695,
+ 465:         0.3786,
+ 466:         0.0790
+ 467:     ],
+ 468:     "old_review_rate": [
+ 469:         0.0129,
+ 470:         0.4034,
+ 471:         0.7822
+ 472:     ],
+ 473:     "old_precision": [
+ 474:         0.3465,
+ 475:         0.2256,
+ 476:         0.1724
+ 477:     ]
+ 478: })
+ 479: 
+ 480: 
+ 481: comparison = (
+ 482:     test_threshold_table[
+ 483:         [
+ 484:             "fn_fp_ratio",
+ 485:             "threshold",
+ 486:             "fnr",
+ 487:             "review_rate",
+ 488:             "precision"
+ 489:         ]
+ 490:     ]
+ 491:     .rename(
+ 492:         columns={
+ 493:             "threshold":
+ 494:                 "new_threshold",
+ 495:             "fnr":
+ 496:                 "new_test_fnr",
+ 497:             "review_rate":
+ 498:                 "new_review_rate",
+ 499:             "precision":
+ 500:                 "new_precision"
+ 501:         }
+ 502:     )
+ 503:     .merge(
+ 504:         old_results,
+ 505:         on="fn_fp_ratio",
+ 506:         how="left"
+ 507:     )
+ 508: )
+ 509: 
+ 510: 
+ 511: print("\n" + "=" * 110)
+ 512: print("D. OLD MANUSCRIPT vs RECALIBRATED ANALYSIS")
+ 513: print("=" * 110)
+ 514: 
+ 515: print(
+ 516:     comparison.to_string(
+ 517:         index=False,
+ 518:         formatters={
+ 519:             "new_threshold":
+ 520:                 "{:.6f}".format,
+ 521:             "new_test_fnr":
+ 522:                 "{:.6f}".format,
+ 523:             "new_review_rate":
+ 524:                 "{:.6f}".format,
+ 525:             "new_precision":
+ 526:                 "{:.6f}".format,
+ 527:             "old_threshold":
+ 528:                 "{:.6f}".format,
+ 529:             "old_test_fnr":
+ 530:                 "{:.6f}".format,
+ 531:             "old_review_rate":
+ 532:                 "{:.6f}".format,
+ 533:             "old_precision":
+ 534:                 "{:.6f}".format
+ 535:         }
+ 536:     )
+ 537: )
+ 538: 
+ 539: 
+ 540: # ------------------------------------------------------------
+ 541: # G. Save
+ 542: # ------------------------------------------------------------
+ 543: 
+ 544: threshold_results.to_csv(
+ 545:     OUTPUT_DIR /
+ 546:     "cell30_recalibrated_threshold_analysis.csv",
+ 547:     index=False
+ 548: )
+ 549: 
+ 550: test_threshold_table.to_csv(
+ 551:     OUTPUT_DIR /
+ 552:     "cell30_recalibrated_test_operating_points.csv",
+ 553:     index=False
+ 554: )
+ 555: 
+ 556: comparison.to_csv(
+ 557:     OUTPUT_DIR /
+ 558:     "cell30_old_vs_recalibrated_thresholds.csv",
+ 559:     index=False
+ 560: )
+ 561: 
+ 562: 
+ 563: print("\nSaved Cell 30 outputs to:")
+ 564: print(OUTPUT_DIR)
+ 565: 
+ 566: print(
+ 567:     "\nAfter this cell, only ONE coding block remains: "
+ 568:     "stress-definition resolution + stress/slice robustness."
+ 569: )

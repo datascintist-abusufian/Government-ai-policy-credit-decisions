@@ -1,0 +1,11 @@
+requested_horizon,horizon_observed,n_at_risk_start_horizon,pct_original_at_risk,less_than_5pct_at_risk,less_than_1pct_at_risk
+6,True,2081403,77.06930451106939,False,False
+12,True,1092889,40.467028796344636,False,False
+18,True,637032,23.58774979727403,False,False
+24,True,522416,19.343797325868575,False,False
+30,True,357541,13.238875990950461,False,False
+36,True,221142,8.188351865634338,False,False
+42,True,55302,2.0476989213867567,True,False
+48,True,17820,0.6598313764260244,True,True
+54,True,467,0.017291877260996263,True,True
+60,False,0,0.0,True,True

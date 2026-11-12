@@ -1,0 +1,4 @@
+feature,eligible_rows,matches_issue_date,matches_last_date,issue_match_percent,last_match_percent,different_date_rows,different_date_matches_issue,different_date_matches_last,different_date_issue_match_percent,different_date_last_match_percent
+year,2703430,522809,2703430,19.33872894804008,100.0,2687953,507332,2687953,18.874288352512117,100.0
+month,2703430,270558,2703430,10.007952859885405,100.0,2687953,255081,2687953,9.489786465760377,100.0
+quarter,2703430,640694,2703430,23.699300518230544,100.0,2687953,625217,2687953,23.259967715209307,100.0

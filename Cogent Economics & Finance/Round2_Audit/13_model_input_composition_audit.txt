@@ -1,0 +1,48 @@
+ROUND 2 - REVIEWER 2 COMMENT 1
+Exact modelling sample composition
+
+Generated: 2026-11-05 17:09:53.180958
+Dataset: E:\Governance-Policy\Cogent Economics & Finance\P2P_Macro_Data.dta
+Rows scanned: 2,703,430
+Training observations: 1,304,058
+Random seed: 42
+NumPy version: 2.5.2
+Pandas version: 2.3.3
+
+RECONSTRUCTION:
+1. Original training chronological period
+2. Original outcome-maturity eligibility rule
+3. Original dataset row order
+4. NumPy random generator with seed 42
+5. Nested subsets: 180k, 360k, 540k, full
+
+CHECKS:
+full_training_size: PASS
+full_terminal_count: PASS
+full_current_2014_2016_count: PASS
+current_2014_2016_all_badloan0: PASS
+
+SAMPLE COMPOSITION:
+ training_n  sampling_seed  terminal_n  terminal_pct  nonterminal_n  nonterminal_pct  current_n  current_pct  current_2014_n  current_2014_pct  current_2016_n  current_2016_pct  current_2014_or_2016_n  current_2014_or_2016_pct  current_2014_or_2016_badloan0_n  current_2014_or_2016_badloan0_pct  badloan_0_n  badloan_0_pct  badloan_1_n  badloan_1_pct  missing_badloan_n  missing_badloan_pct  total_flagged_current_2014_2016  all_badloan_values_accounted_for
+     180000             42      120775       67.0972          59225          32.9028      56789      31.5494            5860            3.2556           37248           20.6933                   43108                   23.9489                            43108                            23.9489       155231        86.2394        24769        13.7606                  0                  0.0                            43108                              True
+     360000             42      241507       67.0853         118493          32.9147     113659      31.5719           11817            3.2825           74258           20.6272                   86075                   23.9097                            86075                            23.9097       310184        86.1622        49816        13.8378                  0                  0.0                            86075                              True
+     540000             42      362624       67.1526         177376          32.8474     170222      31.5226           17684            3.2748          111040           20.5630                  128724                   23.8378                           128724                            23.8378       465121        86.1335        74879        13.8665                  0                  0.0                           128724                              True
+    1304058             42      874826       67.0849         429232          32.9151     411857      31.5827           43228            3.3149          268313           20.5752                  311541                   23.8901                           311541                            23.8901      1122877        86.1064       181181        13.8936                  0                  0.0                           311541                              True
+
+IMPORTANT INTERPRETATION:
+These counts identify the composition of the
+deterministically reconstructed training samples.
+
+Current status does not prove an incorrect label.
+It indicates potentially incomplete outcome follow-up.
+
+The full training sample includes every eligible
+mature observation.
+
+All three classifiers use the same sampling indices
+at a given training size.
+
+Preprocessing in the original notebook was fitted
+on the full mature training cohort.
+
+This analysis does not retrain any classifier.

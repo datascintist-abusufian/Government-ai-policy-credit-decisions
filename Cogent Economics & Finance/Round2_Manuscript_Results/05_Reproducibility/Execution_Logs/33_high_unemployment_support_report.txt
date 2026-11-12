@@ -1,0 +1,31 @@
+ROUND 2 / REVIEWER 2 COMMENT 8 / SUBGROUP SUPPORT AUDIT
+Python: 3.14.7, NumPy: 2.5.2, pandas: 2.3.3
+This is descriptive and conditional on outcome-mature test selection.
+The unemployment threshold is 0.049 in source fraction units (4.9%).
+All test: n=41,145, adverse=6,025
+High unemployment: n=641, adverse=74
+All observed test states: 50
+States contributing >=1 high-unemployment loan: 4
+States contributing >=1 high-unemployment adverse outcome: 4
+Origination months contributing high-unemployment loans: 9
+Effective number of high-subgroup states (loan-concentration index): 3.261
+Effective number of high-subgroup states (event-concentration index): 3.319
+
+HIGH UNEMPLOYMENT BY STATE:
+         n  adverse_n
+state                
+WV     253         23
+NM     218         30
+DC      85         10
+AK      85         11
+
+INTERPRETATION:
+A state-cluster bootstrap can be fragile when the focal group comes from only a few states.
+State/month groups may overlap: rate status can change across months within the same state.
+Grade/term composition can confound unadjusted subgroup FNR comparisons.
+No causal or protected-class fairness conclusion is warranted.
+No multivariable adjustment, hypothesis test, or model retraining was performed.
+
+Saved E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\33_high_unemployment_support_by_state.csv
+Saved E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\33_high_unemployment_support_by_month.csv
+Saved E:\Governance-Policy\Cogent Economics & Finance\Round2_Manuscript_Results\01_Tables\33_high_unemployment_support_by_grade_term.csv

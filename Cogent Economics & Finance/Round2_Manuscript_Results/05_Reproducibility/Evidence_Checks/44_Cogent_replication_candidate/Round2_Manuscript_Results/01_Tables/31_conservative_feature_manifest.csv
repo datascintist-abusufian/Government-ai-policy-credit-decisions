@@ -1,0 +1,151 @@
+feature,originally_used,included_conservative,original_type,note
+loan_amnt,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+funded_amnt,True,False,numeric,Excluded from conservative application/credit-history candidate
+funded_amnt_inv,True,False,numeric,Excluded from conservative application/credit-history candidate
+term,True,True,categorical,"Borrower/credit-history candidate, timestamp not independently verified"
+int_rate,True,False,numeric,Excluded from conservative application/credit-history candidate
+installment,True,False,numeric,Excluded from conservative application/credit-history candidate
+grade,True,False,categorical,Excluded from conservative application/credit-history candidate
+sub_grade,True,False,categorical,Excluded from conservative application/credit-history candidate
+emp_length,True,True,categorical,"Borrower/credit-history candidate, timestamp not independently verified"
+home_ownership,True,True,categorical,"Borrower/credit-history candidate, timestamp not independently verified"
+annual_inc,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+verification_status,True,False,categorical,Excluded from conservative application/credit-history candidate
+purpose,True,True,categorical,"Borrower/credit-history candidate, timestamp not independently verified"
+zip_code,True,False,categorical,Excluded from conservative application/credit-history candidate
+addr_state,True,False,categorical,Excluded from conservative application/credit-history candidate
+dti,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+delinq_2yrs,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+earliest_cr_line,True,True,categorical,"Borrower/credit-history candidate, timestamp not independently verified"
+inq_last_6mths,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+mths_since_last_delinq,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+mths_since_last_record,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+open_acc,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+pub_rec,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+revol_bal,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+revol_util,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+total_acc,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+initial_list_status,True,False,categorical,Excluded from conservative application/credit-history candidate
+collections_12_mths_ex_med,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+mths_since_last_major_derog,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+application_type,True,True,categorical,"Borrower/credit-history candidate, timestamp not independently verified"
+annual_inc_joint,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+dti_joint,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+acc_now_delinq,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+tot_coll_amt,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+tot_cur_bal,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+open_acc_6m,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+total_bal_il,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+il_util,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+inq_fi,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+total_cu_tl,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+inq_last_12m,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+acc_open_past_24mths,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+avg_cur_bal,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+bc_open_to_buy,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+bc_util,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+delinq_amnt,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+mo_sin_old_il_acct,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+mo_sin_old_rev_tl_op,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+mo_sin_rcnt_rev_tl_op,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+mo_sin_rcnt_tl,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+mort_acc,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+mths_since_recent_bc,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+mths_since_recent_bc_dlq,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+mths_since_recent_inq,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+mths_since_recent_revol_delinq,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_accts_ever_120_pd,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_actv_bc_tl,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_actv_rev_tl,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_bc_sats,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_bc_tl,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_il_tl,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_op_rev_tl,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_rev_accts,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_rev_tl_bal_gt_0,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_sats,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_tl_120dpd_2m,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_tl_30dpd,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_tl_90g_dpd_24m,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+num_tl_op_past_12m,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+pct_tl_nvr_dlq,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+pub_rec_bankruptcies,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+tax_liens,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+tot_hi_cred_lim,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+total_bc_limit,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+total_il_high_credit_limit,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+revol_bal_joint,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+open_act_il,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+sec_app_open_act_il,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+region,True,False,categorical,Excluded from conservative application/credit-history candidate
+subregion,True,False,categorical,Excluded from conservative application/credit-history candidate
+earnings,True,False,numeric,Excluded from conservative application/credit-history candidate
+employment,True,False,numeric,Excluded from conservative application/credit-history candidate
+labor_force,True,False,numeric,Excluded from conservative application/credit-history candidate
+Muni,True,False,numeric,Excluded from conservative application/credit-history candidate
+muni_m,True,False,numeric,Excluded from conservative application/credit-history candidate
+FEDFUNDS,True,False,numeric,Excluded from conservative application/credit-history candidate
+internetuser,True,False,numeric,Excluded from conservative application/credit-history candidate
+internetuserprop,True,False,numeric,Excluded from conservative application/credit-history candidate
+empl_exp_prop,True,False,numeric,Excluded from conservative application/credit-history candidate
+empl_expan,True,False,numeric,Excluded from conservative application/credit-history candidate
+empl_birth,True,False,numeric,Excluded from conservative application/credit-history candidate
+empl_birth_per,True,False,numeric,Excluded from conservative application/credit-history candidate
+new_bus,True,False,numeric,Excluded from conservative application/credit-history candidate
+new_bus_per,True,False,numeric,Excluded from conservative application/credit-history candidate
+popestimate,True,False,numeric,Excluded from conservative application/credit-history candidate
+dem,True,False,numeric,Excluded from conservative application/credit-history candidate
+rep,True,False,numeric,Excluded from conservative application/credit-history candidate
+red,True,False,numeric,Excluded from conservative application/credit-history candidate
+christianity,True,False,numeric,Excluded from conservative application/credit-history candidate
+religiousity,True,False,numeric,Excluded from conservative application/credit-history candidate
+unemployment,True,False,numeric,Excluded from conservative application/credit-history candidate
+unem_rate,True,False,numeric,Excluded from conservative application/credit-history candidate
+gdpindex,True,False,numeric,Excluded from conservative application/credit-history candidate
+gdpreal,True,False,numeric,Excluded from conservative application/credit-history candidate
+gdpcontrib,True,False,numeric,Excluded from conservative application/credit-history candidate
+cpi,True,False,numeric,Excluded from conservative application/credit-history candidate
+cpiregion,True,False,numeric,Excluded from conservative application/credit-history candidate
+inf,True,False,numeric,Excluded from conservative application/credit-history candidate
+gdppercap,True,False,numeric,Excluded from conservative application/credit-history candidate
+des_length,True,False,numeric,Excluded from conservative application/credit-history candidate
+logfunded_amnt,True,False,numeric,Excluded from conservative application/credit-history candidate
+logannual_inc,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+logdti,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+logtotal_acc,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+logmo_sin_old_il_acct,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+logmo_sin_rcnt_tl,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+lognum_accts_ever_120_pd,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+logpct_tl_nvr_dlq,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+logpercent_bc_gt_75,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+logtot_hi_cred_lim,True,True,numeric,"Borrower/credit-history candidate, timestamp not independently verified"
+logearnings,True,False,numeric,Excluded from conservative application/credit-history candidate
+logemployment,True,False,numeric,Excluded from conservative application/credit-history candidate
+loglabor_force,True,False,numeric,Excluded from conservative application/credit-history candidate
+logfinanceuser,True,False,numeric,Excluded from conservative application/credit-history candidate
+logsocialnetworkuser,True,False,numeric,Excluded from conservative application/credit-history candidate
+loginternetuser,True,False,numeric,Excluded from conservative application/credit-history candidate
+logempl_expan,True,False,numeric,Excluded from conservative application/credit-history candidate
+logempl_birth,True,False,numeric,Excluded from conservative application/credit-history candidate
+lognew_bus,True,False,numeric,Excluded from conservative application/credit-history candidate
+logpopestimate,True,False,numeric,Excluded from conservative application/credit-history candidate
+logunemployment,True,False,numeric,Excluded from conservative application/credit-history candidate
+loggdppercap,True,False,numeric,Excluded from conservative application/credit-history candidate
+state,True,False,numeric,Excluded from conservative application/credit-history candidate
+muni_points,True,False,numeric,Excluded from conservative application/credit-history candidate
+muni_6m,True,False,numeric,Excluded from conservative application/credit-history candidate
+inf_6m,True,False,numeric,Excluded from conservative application/credit-history candidate
+loan_vol,True,False,numeric,Excluded from conservative application/credit-history candidate
+median_dummy,True,False,numeric,Excluded from conservative application/credit-history candidate
+quarter,True,False,numeric,Excluded from conservative application/credit-history candidate
+month,True,False,numeric,Excluded from conservative application/credit-history candidate
+year,True,False,numeric,Excluded from conservative application/credit-history candidate
+CPIUS,True,False,numeric,Excluded from conservative application/credit-history candidate
+logCPIUS,True,False,numeric,Excluded from conservative application/credit-history candidate
+infUS,True,False,numeric,Excluded from conservative application/credit-history candidate
+logloan_vol,True,False,numeric,Excluded from conservative application/credit-history candidate
+FED_lag6,True,False,numeric,Excluded from conservative application/credit-history candidate
+riskprem,True,False,numeric,Excluded from conservative application/credit-history candidate
+loan_vol6m,True,False,numeric,Excluded from conservative application/credit-history candidate
+loglvol_6m,True,False,numeric,Excluded from conservative application/credit-history candidate
+issue_year,True,False,numeric,Excluded from conservative application/credit-history candidate

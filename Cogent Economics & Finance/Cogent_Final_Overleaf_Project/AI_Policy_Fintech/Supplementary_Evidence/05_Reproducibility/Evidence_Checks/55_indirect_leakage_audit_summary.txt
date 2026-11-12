@@ -1,0 +1,8 @@
+STEP 55 INDIRECT LEAKAGE AUDIT
+
+Original payment-dependent features: ['issue_year', 'loan_vol', 'median_dummy', 'month', 'quarter', 'year']
+Remaining in 145: ['issue_year']
+Remaining in 133: []
+Outcome-dependent features: []
+
+This is a static source-code dependency audit. It cannot establish that the supplied Stata script generated every stored field or certify that other variables were available at decision time.

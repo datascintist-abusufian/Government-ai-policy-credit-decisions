@@ -1,0 +1,10 @@
+feature,declared_type,used_in_model,exists_in_source,source_dtype,source_variable_label,timing_flag,reason
+cpi,numeric,True,True,float64,Value,TIMING_REQUIRES_VERIFICATION,Economic data publication timing requires verification
+funded_amnt,numeric,True,True,int32,The total amount committed to that loan at that point in time.,TIMING_REQUIRES_VERIFICATION,Verify availability at the intended decision point
+funded_amnt_inv,numeric,True,True,float64,The total amount committed by investors for that loan at that point in time.,TIMING_REQUIRES_VERIFICATION,Investor funding may be known only after loan funding
+grade,categorical,True,True,object,LC assigned loan grade,TIMING_REQUIRES_VERIFICATION,Platform-assigned grade depends on decision timing
+int_rate,numeric,True,True,float64,Interest Rate on the loan,TIMING_REQUIRES_VERIFICATION,Interest rate depends on the underwriting decision stage
+issue_year,numeric,True,True,float32,,TIMING_REQUIRES_VERIFICATION,Derived origination year requires temporal verification
+sub_grade,categorical,True,True,object,LC assigned loan subgrade,TIMING_REQUIRES_VERIFICATION,Platform-assigned subgrade depends on decision timing
+unem_rate,numeric,True,True,float32,,TIMING_REQUIRES_VERIFICATION,Unemployment rate must be aligned to origination
+unemployment,numeric,True,True,float32,,TIMING_REQUIRES_VERIFICATION,Macroeconomic observation period requires verification

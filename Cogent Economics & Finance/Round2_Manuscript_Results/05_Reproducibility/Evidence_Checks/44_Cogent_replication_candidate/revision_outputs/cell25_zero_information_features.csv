@@ -1,0 +1,8 @@
+column,dtype_sample,n_nonmissing,missing_pct,nunique_or_cap,zero_information
+url,float64,0,100.0,0,True
+policy_code,int8,2703430,0.0,1,True
+verification_status_joint,float64,0,100.0,0,True
+loanmedian,float32,2703430,0.0,1,True
+meanopen_acc,float32,2703430,0.0,1,True
+loan6m_median,float32,2703430,0.0,1,True
+loan_sum,float32,2703430,0.0,1,True

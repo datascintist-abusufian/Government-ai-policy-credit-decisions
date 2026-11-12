@@ -1,0 +1,84 @@
+filename,rows,columns,column_names,read_status
+01_loan_status_counts.csv,7,3,Unnamed: 0; n; percent,PASS
+02_badloan_counts.csv,2,3,Unnamed: 0; n; percent,PASS
+03_status_by_badloan.csv,14,3,loan_status; badloan; n,PASS
+04_status_date_audit.csv,7,12,loan_status; n; issue_min; issue_max; last_min; last_max; raw_last_blank; next_nonblank; next_min; next_max; raw_last_blank_pct; next_nonblank_pct,PASS
+05_maturity_reconstruction.csv,21,9,cutoff; split; total; mature; badloan_mature; maturity_pct; badloan_rate_mature_pct; manuscript_target; difference_from_target,PASS
+06_status_counts_by_split.csv,7,4,loan_status; Train; Validation; Test,PASS
+07_maturity_rule_comparison.csv,9,9,rule; split; total; mature; badloan_mature; target; difference; maturity_pct; badloan_rate_pct,PASS
+cell11_overall_observation_horizon.csv,1,7,n; issue_min; issue_max; last_min; last_max; next_min; next_max,PASS
+cell11_status_observation_horizon.csv,7,4,loan_status; n; last_payment_min; last_payment_max,PASS
+cell12_candidate_observation_dates.csv,5,8,field; nonblank; parsed; min; max; coverage_pct; parse_success_pct_of_nonblank; nonmissing,PASS
+cell13_before_term_by_status.csv,7,6,loan_status; n_with_duration; before_term; at_or_after_term; before_term_pct; at_or_after_term_pct,PASS
+cell13_charged_off_timing.csv,2,7,term_months; n; median_months; q25_months; q75_months; before_term; before_term_pct,PASS
+cell13_duration_by_status.csv,7,8,loan_status; n; duration_available; median_months; mean_months; q25_months; q75_months; duration_available_pct,PASS
+cell13_fully_paid_timing.csv,2,7,term_months; n; median_months; q25_months; q75_months; early_paid; early_paid_pct,PASS
+cell13_term_distribution.csv,2,3,term_months; n; pct,PASS
+cell14_alternative_date_coverage.csv,2,7,loan_status; n; credit_pull_available; next_payment_available; recoveries_positive; credit_pull_pct; next_payment_pct,PASS
+cell14_credit_pull_timing.csv,2,6,loan_status; count; median; mean; min; max,PASS
+cell14_terminal_missing_last_payment.csv,2741,15,issue_date; loan_status; term; last_pymnt_d; last_date; last_credit_pull_d; next_pymnt_d; recoveries; collection_recovery_fee; out_prncp; total_rec_prncp; issue_dt; credit_pull_dt; next_payment_dt; months_to_credit_pull,PASS
+cell15_current_next_payment_months.csv,18,4,loan_status; next_payment_month; n; pct_current,PASS
+cell15_overall_next_payment_months.csv,21,3,next_payment_month; n; pct_unresolved,PASS
+cell15_unresolved_payment_horizons.csv,5,7,loan_status; n_with_next; earliest_next; latest_next; n_with_last; earliest_last; latest_last,PASS
+cell16_candidate_snapshots.csv,21,3,candidate_snapshot; n; pct,PASS
+cell16_gap_by_status.csv,5,7,loan_status; n; exactly_one_month; median_gap; min_gap; max_gap; exactly_one_month_pct,PASS
+cell16_next_last_gap.csv,8,3,month_gap; n; pct,PASS
+cell16_snapshot_by_status.csv,8,6,candidate_snapshot; Current; Default; In Grace Period; Late (16-30 days); Late (31-120 days),PASS
+cell17_duration_by_event.csv,3,6,event_label; count; median; mean; min; max,PASS
+cell17_event_by_issue_year.csv,9,5,issue_year; Censored/unresolved; Charged Off; Fully Paid; All,PASS
+cell17_event_by_term.csv,3,5,term_months; Censored/unresolved; Charged Off; Fully Paid; All,PASS
+cell17_event_distribution.csv,3,3,event; n; pct,PASS
+cell17_excluded_status.csv,1,2,loan_status; n,PASS
+cell18_zero_month_by_status.csv,2,3,event_label; loan_status; n,PASS
+cell18_zero_month_by_term.csv,3,4,term_months; Charged Off; Fully Paid; All,PASS
+cell18_zero_month_by_year.csv,8,4,issue_year; Charged Off; Fully Paid; All,PASS
+cell19_overall_cif_horizons.csv,7,5,horizon_months; risk_set_at_last_observed_month; survival; cif_chargeoff; cif_fullypaid,PASS
+cell19_overall_competing_risk_cif.csv,56,13,time_month; charged_off; fully_paid; censored; total_exit; risk_set; hazard_chargeoff; hazard_fullypaid; hazard_any_event; survival; cif_chargeoff; cif_fullypaid; probability_sum,PASS
+cell19_term_cif_horizons.csv,12,6,horizon_months; risk_set_at_last_observed_month; survival; cif_chargeoff; cif_fullypaid; term_months,PASS
+cell19_term_competing_risk_cif.csv,105,13,time_month; charged_off; fully_paid; censored; total_exit; risk_set; hazard_chargeoff; hazard_fullypaid; hazard_any_event; survival; cif_chargeoff; cif_fullypaid; term_months,PASS
+cell20_horizon_support_flags.csv,10,6,requested_horizon; horizon_observed; n_at_risk_start_horizon; pct_original_at_risk; less_than_5pct_at_risk; less_than_1pct_at_risk,PASS
+cell20_monthly_tail_support.csv,27,6,time_month; charged_off; fully_paid; censored; total_exit; n_at_risk,PASS
+cell20_overall_horizon_support.csv,10,10,group; requested_horizon; max_observed_month; horizon_observed; n_total; n_at_risk_start_horizon; pct_original_at_risk; cum_chargeoff_count; cum_fullypaid_count; cum_censored_count,PASS
+cell20_term_horizon_support.csv,16,10,group; requested_horizon; max_observed_month; horizon_observed; n_total; n_at_risk_start_horizon; pct_original_at_risk; cum_chargeoff_count; cum_fullypaid_count; cum_censored_count,PASS
+cell21_overall_cif_with_ci.csv,56,14,time_month; risk_set; charged_off; fully_paid; censored; survival; cif_chargeoff; se_chargeoff; chargeoff_ci_low; chargeoff_ci_high; cif_fullypaid; se_fullypaid; fullypaid_ci_low; fullypaid_ci_high,PASS
+cell21_overall_horizon_ci.csv,5,9,group; horizon_months; risk_set; cif_chargeoff; chargeoff_ci_low; chargeoff_ci_high; cif_fullypaid; fullypaid_ci_low; fullypaid_ci_high,PASS
+cell21_term_cif_with_ci.csv,105,15,time_month; risk_set; charged_off; fully_paid; censored; survival; cif_chargeoff; se_chargeoff; chargeoff_ci_low; chargeoff_ci_high; cif_fullypaid; se_fullypaid; fullypaid_ci_low; fullypaid_ci_high; term_months,PASS
+cell21_term_horizon_ci.csv,10,10,group; horizon_months; risk_set; cif_chargeoff; chargeoff_ci_low; chargeoff_ci_high; cif_fullypaid; fullypaid_ci_low; fullypaid_ci_high; term_months,PASS
+cell22_analytic_vs_bootstrap_ci.csv,3,10,horizon_months; cif_chargeoff; chargeoff_ci_low; chargeoff_ci_high; original_cif; bootstrap_mean; bootstrap_sd; bootstrap_ci_low; bootstrap_ci_high; n_boot,PASS
+cell22_bootstrap_cif_summary.csv,3,7,horizon_months; original_cif; bootstrap_mean; bootstrap_sd; bootstrap_ci_low; bootstrap_ci_high; n_boot,PASS
+cell23_old_notebook_model_search.csv,23,2,cell_index; matched_terms,PASS
+cell24_candidate_features.csv,169,5,column; dtype; category; missing_pct_sample; nunique_sample,PASS
+cell24_raw_feature_audit.csv,195,5,column; dtype; category; missing_pct_sample; nunique_sample,PASS
+cell24_suspicious_candidate_features.csv,21,5,column; dtype; category; missing_pct_sample; nunique_sample,PASS
+cell25_duplicate_representation_pairs.csv,9,4,raw_column; encoded_column; raw_present; encoded_present,PASS
+cell25_full_feature_usability_audit.csv,169,6,column; dtype_sample; n_nonmissing; missing_pct; nunique_or_cap; zero_information,PASS
+cell25_raw_log_pairs.csv,21,2,raw_column; log_column,PASS
+cell25_related_feature_families.csv,22,2,family; column,PASS
+cell25_zero_information_features.csv,7,6,column; dtype_sample; n_nonmissing; missing_pct; nunique_or_cap; zero_information,PASS
+cell26_feature_missingness.csv,153,2,feature; missing_pct,PASS
+cell26_locked_feature_specification.csv,153,2,feature; type,PASS
+cell26_revised_cohort_audit.csv,3,6,split; all_n; mature_n; mature_pct; all_badloan_rate; mature_badloan_rate,PASS
+cell27_training_size_deltas.csv,12,16,training_n; model; train_event_rate; val_auc; test_auc; val_brier; test_brier; val_logloss; test_logloss; fit_seconds; auc_180k; brier_180k; logloss_180k; delta_auc_vs_180k; delta_brier_vs_180k; delta_logloss_vs_180k,PASS
+cell27_training_size_sensitivity.csv,12,10,training_n; model; train_event_rate; val_auc; test_auc; val_brier; test_brier; val_logloss; test_logloss; fit_seconds,PASS
+cell28_paired_bootstrap_model_comparisons.csv,6,14,training_n; model_A; model_B; auc_diff_A_minus_B; auc_ci_low; auc_ci_high; auc_bootstrap_p; brier_diff_A_minus_B; brier_ci_low; brier_ci_high; logloss_diff_A_minus_B; logloss_ci_low; logloss_ci_high; auc_difference_supported,PASS
+cell28_test_performance_point_estimates.csv,6,5,training_n; model; auc; brier; logloss,PASS
+cell29_before_after_calibration.csv,4,11,cohort; stage; n; event_rate; mean_prediction; auc; brier; logloss; ece; calibration_intercept; calibration_slope,PASS
+cell29_test_calibration_change.csv,1,9,delta_mean_prediction; delta_auc; delta_brier; delta_logloss; delta_ece; intercept_before; intercept_after; slope_before; slope_after,PASS
+cell29_test_reliability_after.csv,7,7,bin; lower; upper; n; mean_prediction; event_rate; abs_gap,PASS
+cell29_test_reliability_before.csv,4,7,bin; lower; upper; n; mean_prediction; event_rate; abs_gap,PASS
+cell29_validation_reliability_after.csv,7,7,bin; lower; upper; n; mean_prediction; event_rate; abs_gap,PASS
+cell29_validation_reliability_before.csv,4,7,bin; lower; upper; n; mean_prediction; event_rate; abs_gap,PASS
+cell30_old_vs_recalibrated_thresholds.csv,3,9,fn_fp_ratio; new_threshold; new_test_fnr; new_review_rate; new_precision; old_threshold; old_test_fnr; old_review_rate; old_precision,PASS
+cell30_recalibrated_test_operating_points.csv,3,17,fn_fp_ratio; fn_cost; fp_cost; threshold; threshold_selected_on; cohort; tp; fp; tn; fn; fnr; tpr; review_rate; precision; cost; no_review_cost; net_benefit,PASS
+cell30_recalibrated_threshold_analysis.csv,6,17,fn_fp_ratio; fn_cost; fp_cost; threshold; threshold_selected_on; cohort; tp; fp; tn; fn; fnr; tpr; review_rate; precision; cost; no_review_cost; net_benefit,PASS
+cell31A_490_threshold_audit.csv,4,4,variable; threshold; stress_n; stress_pct,PASS
+cell31A_geographic_stress_summary.csv,50,8,addr_state; n; unemployment_mean; unemployment_min; unemployment_max; unem_rate_mean; unem_rate_min; unem_rate_max,PASS
+cell31A_monthly_stress_structure.csv,9,8,issue_month_clean; n; unemployment_min; unemployment_median; unemployment_max; unem_rate_min; unem_rate_median; unem_rate_max,PASS
+cell31A_stress_variable_distributions.csv,4,13,variable; n; missing_pct; min; p01; p25; median; p75; p90; p95; p99; max; nunique,PASS
+cell31A_thresholds_near_641.csv,1,4,variable; threshold; n_ge_threshold; difference_from_641,PASS
+cell31A_unemployment_correlations.csv,3,4,Unnamed: 0; unemployment; unem_rate; logunemployment,PASS
+cell31B_high_unemployment_slice_support.csv,11,6,grade; term; regime; n; defaults; nondefaults,PASS
+cell31B_slice_support_counts.csv,22,6,grade; term; regime; n; defaults; nondefaults,PASS
+cell31B_supported_slice_results.csv,8,14,grade; term; regime; n; defaults; tp; fp; tn; fn; fnr; fnr_ci_low; fnr_ci_high; review_rate; precision,PASS
+cell31B_unemployment_group_performance.csv,2,18,group; n; defaults; nondefaults; default_rate; mean_prediction; brier; logloss; ece; auc; auc_ci_low; auc_ci_high; brier_ci_low; brier_ci_high; logloss_ci_low; logloss_ci_high; ece_ci_low; ece_ci_high,PASS
+cell31B_unemployment_threshold_performance.csv,2,12,group; n; defaults; tp; fp; tn; fn; fnr; fnr_ci_low; fnr_ci_high; review_rate; precision,PASS
